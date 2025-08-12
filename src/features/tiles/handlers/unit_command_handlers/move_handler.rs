@@ -11,6 +11,7 @@ use crate::{
             utils::world_to_tile_coords,
             overlay::{MovementOverlay, MovementValidation},
             actions::{select_tile, select_unit, select_enemy, clear_selection, execute_move},
+            resources::TileContent,
         },
         units::{Unit, Enemy},
     },
@@ -134,24 +135,18 @@ fn handle_click_target(
         ClickTarget::FriendlyUnit => {
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let tile_pos = tile_coords.into();
-                for (unit_entity, unit) in unit_queries.p0().iter() {
-                    if unit.tile_pos == tile_pos {
-                        println!("Clicked friendly unit while in Move state - selecting different unit");
-                        select_unit(unit_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
-                        break;
-                    }
+                if let TileContent::Unit(unit_entity) = tile_map.get_content(tile_pos) {
+                    println!("Clicked friendly unit while in Move state - selecting different unit");
+                    select_unit(unit_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
                 }
             }
         },
         ClickTarget::Enemy => {
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let tile_pos = tile_coords.into();
-                for (enemy_entity, enemy) in enemy_query.iter() {
-                    if enemy.tile_pos == tile_pos {
-                        println!("Clicked enemy while in Move state - selecting enemy");
-                        select_enemy(enemy_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
-                        break;
-                    }
+                if let TileContent::Enemy(enemy_entity) = tile_map.get_content(tile_pos) {
+                    println!("Clicked enemy while in Move state - selecting enemy");
+                    select_enemy(enemy_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
                 }
             }
         },

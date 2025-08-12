@@ -3,7 +3,6 @@ use bevy::prelude::*;
 mod states;
 mod features;
 mod ui;
-mod resources;
 mod temp;
 
 use states::AppState;

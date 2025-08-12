@@ -10,6 +10,7 @@ use crate::{
         tiles::{
             utils::world_to_tile_coords,
             actions::{select_tile, select_unit, select_enemy, clear_selection},
+            TileMap, resources::TileContent,
         },
         units::{Unit, Enemy},
     },
@@ -22,11 +23,10 @@ pub fn handle_attack_state_click(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
+    tile_map: Res<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
-    unit_query: Query<(Entity, &Unit)>,
-    enemy_query: Query<(Entity, &Enemy)>,
 ) {
     if !mouse_input.just_pressed(MouseButton::Left) {
         return;
@@ -44,24 +44,21 @@ pub fn handle_attack_state_click(
 
     let tile_pos = tile_coords.into();
 
-    // Check for unit at clicked position
-    for (unit_entity, unit) in unit_query.iter() {
-        if unit.tile_pos == tile_pos {
-            select_unit(unit_entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
-            return;
+    // Check what's at the clicked tile using TileMap
+    match tile_map.get_content(tile_pos) {
+        TileContent::Unit(entity) => {
+            select_unit(entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
         }
-    }
-
-    // Check for enemy at clicked position - this would be attack target
-    for (enemy_entity, enemy) in enemy_query.iter() {
-        if enemy.tile_pos == tile_pos {
+        TileContent::Enemy(entity) => {
             // TODO: Implement attack action here
             println!("Attack enemy at {:?} - not implemented yet", tile_pos);
-            select_enemy(enemy_entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
-            return;
+            select_enemy(entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
+        }
+        TileContent::Empty => {
+            select_tile(tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
+        }
+        TileContent::Obstacle => {
+            // Do nothing for obstacles
         }
     }
-
-    // Empty tile - select it
-    select_tile(tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
 }

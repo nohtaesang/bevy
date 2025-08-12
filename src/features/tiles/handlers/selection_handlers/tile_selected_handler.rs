@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::{
     states::in_game::{SelectionState, UnitCommandState},
     features::{
-        tiles::{SelectionCtx, TileConfig, utils::world_to_tile_coords},
+        tiles::{SelectionCtx, TileConfig, TileMap, utils::world_to_tile_coords, resources::TileContent},
         units::{Unit, Enemy},
     },
 };
@@ -56,11 +56,10 @@ pub fn handle_tile_selected_click(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
+    tile_map: Res<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
-    unit_query: Query<(Entity, &Unit)>,
-    enemy_query: Query<(Entity, &Enemy)>,
 ) {
     if !mouse_input.just_pressed(MouseButton::Left) {
         return;
@@ -84,9 +83,9 @@ pub fn handle_tile_selected_click(
     
     // Note: Removed self-deselection behavior - clicking same tile now does nothing
     
-    // Check for unit at tile
-    for (entity, unit) in unit_query.iter() {
-        if unit.tile_pos == tile_pos {
+    // Check what's at the clicked tile using TileMap
+    match tile_map.get_content(tile_pos) {
+        TileContent::Unit(entity) => {
             handle_unit_click_when_tile_selected(
                 entity,
                 tile_pos,
@@ -94,13 +93,8 @@ pub fn handle_tile_selected_click(
                 &mut next_action_state,
                 &mut selection_ctx,
             );
-            return;
         }
-    }
-    
-    // Check for enemy at tile
-    for (entity, enemy) in enemy_query.iter() {
-        if enemy.tile_pos == tile_pos {
+        TileContent::Enemy(entity) => {
             handle_enemy_click_when_tile_selected(
                 entity,
                 tile_pos,
@@ -108,15 +102,17 @@ pub fn handle_tile_selected_click(
                 &mut next_action_state,
                 &mut selection_ctx,
             );
-            return;
+        }
+        TileContent::Empty => {
+            handle_empty_tile_click_when_tile_selected(
+                tile_pos,
+                &mut next_selection_state,
+                &mut next_action_state,
+                &mut selection_ctx,
+            );
+        }
+        TileContent::Obstacle => {
+            // Do nothing for obstacles
         }
     }
-    
-    // Empty tile
-    handle_empty_tile_click_when_tile_selected(
-        tile_pos,
-        &mut next_selection_state,
-        &mut next_action_state,
-        &mut selection_ctx,
-    );
 }

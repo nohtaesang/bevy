@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::{
     states::in_game::{SelectionState, UnitCommandState},
     features::{
-        tiles::{SelectionCtx, TileConfig, utils::world_to_tile_coords},
+        tiles::{SelectionCtx, TileConfig, TileMap, utils::world_to_tile_coords, resources::TileContent},
         units::{Unit, Enemy},
     },
 };
@@ -77,12 +77,11 @@ pub fn handle_unit_selected_click(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
+    tile_map: Res<TileMap>,
     action_state: Res<State<UnitCommandState>>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
-    unit_query: Query<(Entity, &Unit)>,
-    _enemy_query: Query<(Entity, &Enemy)>,
 ) {
     if !mouse_input.just_pressed(MouseButton::Left) {
         return;
@@ -109,9 +108,9 @@ pub fn handle_unit_selected_click(
     if tile_pos == selected_tile {
        
     } else {
-        // Check for unit at tile
-        for (entity, unit) in unit_query.iter() {
-            if unit.tile_pos == tile_pos {
+        // Check what's at the clicked tile using TileMap
+        match tile_map.get_content(tile_pos) {
+            TileContent::Unit(entity) => {
                 handle_different_unit_click_when_unit_selected(
                     entity,
                     tile_pos,
@@ -120,6 +119,9 @@ pub fn handle_unit_selected_click(
                     &mut selection_ctx,
                 );
                 return;
+            }
+            _ => {
+                // Continue to action handling for non-unit tiles
             }
         }
         
