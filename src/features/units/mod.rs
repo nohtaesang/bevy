@@ -1,7 +1,12 @@
-//! Unit and enemy systems
+//! Unit systems - ally and enemy units
 
-pub mod components;
-pub mod spawn_systems;
+pub mod ally;
+pub mod enemy;
+pub mod shared;
+pub mod plugin;
 
-pub use components::{Unit, Enemy, AttackDirection, AttackType, AttackRange};
-pub use spawn_systems::{spawn_units, spawn_enemies};
+// Re-export main types
+pub use ally::Unit;
+pub use enemy::Enemy;
+pub use shared::{AttackDirection, AttackType, AttackRange};
+pub use plugin::UnitsPlugin;

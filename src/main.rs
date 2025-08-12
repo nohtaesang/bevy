@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
-mod core;
 mod states;
 mod features;
 mod ui;
 mod resources;
+mod temp;
 
 use states::AppState;
 use states::in_game::InGamePlugin;

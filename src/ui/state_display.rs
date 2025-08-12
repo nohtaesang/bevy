@@ -54,9 +54,9 @@ pub fn setup_state_display_ui(mut commands: Commands) {
 pub fn update_state_display(
     mut text_query: Query<&mut Text, With<StateText>>,
     turn_state: Res<State<TurnState>>,
-    selection_state: Res<State<SelectionState>>,
-    action_state: Res<State<UnitCommandState>>,
-    selection_ctx: Res<SelectionCtx>,
+    selection_state: Option<Res<State<SelectionState>>>,
+    action_state: Option<Res<State<UnitCommandState>>>,
+    selection_ctx: Option<Res<SelectionCtx>>,
     unit_query: Query<&Unit>,
     enemy_query: Query<&Enemy>,
 ) {
@@ -67,34 +67,48 @@ pub fn update_state_display(
         display_text.push_str(&format!("Turn: {:?}\n", turn_state.get()));
         
         // Selection state
-        display_text.push_str(&format!("Selection: {:?}\n", selection_state.get()));
+        if let Some(selection_state) = &selection_state {
+            display_text.push_str(&format!("Selection: {:?}\n", selection_state.get()));
+        } else {
+            display_text.push_str("Selection: N/A\n");
+        }
         
         // Action state
-        display_text.push_str(&format!("Action: {:?}\n", action_state.get()));
+        if let Some(action_state) = &action_state {
+            display_text.push_str(&format!("Action: {:?}\n", action_state.get()));
+        } else {
+            display_text.push_str("Action: N/A\n");
+        }
         
         // Selected tile
-        if let Some(tile_pos) = selection_ctx.tile {
-            display_text.push_str(&format!("Tile: ({}, {})\n", tile_pos.x, tile_pos.y));
+        if let Some(selection_ctx) = &selection_ctx {
+            if let Some(tile_pos) = selection_ctx.tile {
+                display_text.push_str(&format!("Tile: ({}, {})\n", tile_pos.x, tile_pos.y));
+            } else {
+                display_text.push_str("Tile: None\n");
+            }
+            
+            // Selected entity details
+            if let Some(entity) = selection_ctx.selected_unit {
+                if let Ok(unit) = unit_query.get(entity) {
+                    display_text.push_str(&format!("\nUnit Selected:\n"));
+                    display_text.push_str(&format!("  HP: {}/{}\n", unit.health, unit.max_health));
+                    display_text.push_str(&format!("  ATK: {}\n", unit.attack_power));
+                    display_text.push_str(&format!("  Move: {}\n", unit.movement_range));
+                    display_text.push_str(&format!("  Range: {}-{}\n", unit.attack_range.min, unit.attack_range.max));
+                }
+            } else if let Some(entity) = selection_ctx.selected_enemy {
+                if let Ok(enemy) = enemy_query.get(entity) {
+                    display_text.push_str(&format!("\nEnemy Selected:\n"));
+                    display_text.push_str(&format!("  HP: {}/{}\n", enemy.health, enemy.max_health));
+                    display_text.push_str(&format!("  ATK: {}\n", enemy.attack_power));
+                }
+            }
         } else {
-            display_text.push_str("Tile: None\n");
+            display_text.push_str("Tile: N/A\n");
         }
         
-        // Selected entity details
-        if let Some(entity) = selection_ctx.selected_unit {
-            if let Ok(unit) = unit_query.get(entity) {
-                display_text.push_str(&format!("\nUnit Selected:\n"));
-                display_text.push_str(&format!("  HP: {}/{}\n", unit.health, unit.max_health));
-                display_text.push_str(&format!("  ATK: {}\n", unit.attack_power));
-                display_text.push_str(&format!("  Move: {}\n", unit.movement_range));
-                display_text.push_str(&format!("  Range: {}-{}\n", unit.attack_range.min, unit.attack_range.max));
-            }
-        } else if let Some(entity) = selection_ctx.selected_enemy {
-            if let Ok(enemy) = enemy_query.get(entity) {
-                display_text.push_str(&format!("\nEnemy Selected:\n"));
-                display_text.push_str(&format!("  HP: {}/{}\n", enemy.health, enemy.max_health));
-                display_text.push_str(&format!("  ATK: {}\n", enemy.attack_power));
-            }
-        }
+        display_text.push_str("\nPress SPACE to switch turns");
         
         text.0 = display_text;
     }

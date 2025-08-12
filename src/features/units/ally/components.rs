@@ -1,42 +1,7 @@
-//! Unit and enemy components
+//! Ally (player-controlled) unit components
 
 use bevy::prelude::*;
-
-/// Attack direction types
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AttackDirection {
-    /// Can attack in 4 cardinal directions (up, down, left, right)
-    Cardinal,
-    /// Can attack in 8 directions (cardinal + diagonals)
-    EightWay,
-}
-
-/// Attack type that determines line of sight requirements
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum AttackType {
-    /// Direct fire - cannot shoot over units (requires clear line of sight)
-    Direct,
-    /// Indirect fire - can shoot over units (no line of sight required)
-    Indirect,
-}
-
-/// Attack range with minimum and maximum distance
-#[derive(Debug, Clone, Copy)]
-pub struct AttackRange {
-    pub min: i32,
-    pub max: i32,
-}
-
-impl AttackRange {
-    pub fn new(min: i32, max: i32) -> Self {
-        Self { min, max }
-    }
-    
-    /// Check if a distance is within attack range
-    pub fn is_in_range(&self, distance: i32) -> bool {
-        distance >= self.min && distance <= self.max
-    }
-}
+use crate::features::units::shared::{AttackDirection, AttackType, AttackRange};
 
 #[derive(Component, Debug)]
 pub struct Unit {
@@ -102,24 +67,5 @@ impl Unit {
     /// Use attack (reduces attack_count by 1)
     pub fn use_attack(&mut self) {
         self.attack_count = (self.attack_count - 1).max(0);
-    }
-}
-
-#[derive(Component, Debug)]
-pub struct Enemy {
-    pub tile_pos: IVec2,
-    pub health: i32,
-    pub max_health: i32,
-    pub attack_power: i32,
-}
-
-impl Enemy {
-    pub fn new(tile_pos: IVec2) -> Self {
-        Self {
-            tile_pos,
-            health: 50,
-            max_health: 50,
-            attack_power: 5,
-        }
     }
 }
