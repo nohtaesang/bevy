@@ -8,9 +8,9 @@ use crate::{
 use super::{create_selected_overlay_sprite, selected_overlay_system};
 
 /// Selected plugin that handles selected overlay functionality
-pub struct SelectedPlugin;
+pub struct SelectedOverlayPlugin;
 
-impl Plugin for SelectedPlugin {
+impl Plugin for SelectedOverlayPlugin {
     fn build(&self, app: &mut App) {
         app
             // Setup selected overlay when entering InGame state

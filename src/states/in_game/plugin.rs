@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::{
     core::{AppState, TurnState, SelectionState, ActionState, SelectionCtx}, 
-    resources::TileConfig, 
+    resources::{TileConfig, TileMap}, 
     features::{
         camera::CameraPlugin, 
         tiles::{
@@ -13,10 +13,10 @@ use crate::{
             handle_unit_keyboard_input,
             handle_right_click_action_cancel,
             handle_right_click_selection_clear,
-            handle_attack_state_click,
-            HoverPlugin,
-            SelectedPlugin,
-            MovementPlugin,
+            HoverOverlayPlugin,
+            SelectedOverlayPlugin,
+            MovementOverlayPlugin,
+            AttackOverlayPlugin,
         },
         units::{spawn_units, spawn_enemies},
     },
@@ -32,6 +32,7 @@ impl Plugin for InGamePlugin {
             // Initialize resources
             .init_resource::<TileConfig>()
             .init_resource::<SelectionCtx>()
+            .insert_resource(TileMap::new(10)) // Initialize with 10x10 grid
             
             // Initialize sub-states
             .add_sub_state::<TurnState>()
@@ -39,7 +40,7 @@ impl Plugin for InGamePlugin {
             .add_sub_state::<ActionState>()
             
             // Add plugins
-            .add_plugins((CameraPlugin, HoverPlugin, SelectedPlugin, MovementPlugin))
+            .add_plugins((CameraPlugin, HoverOverlayPlugin, SelectedOverlayPlugin, MovementOverlayPlugin, AttackOverlayPlugin))
             
             // Systems that run when entering InGame state
             .add_systems(OnEnter(AppState::InGame), (
@@ -75,13 +76,7 @@ impl Plugin for InGamePlugin {
                 ),
             ))
             
-            // Action-specific click handlers
-            .add_systems(Update, (
-                handle_attack_state_click.run_if(
-                    in_state(TurnState::PlayerTurn)
-                    .and(in_state(ActionState::Attack))
-                ),
-            ))
+            // Action-specific click handlers are now handled by plugins
             
             // Keyboard input handlers
             .add_systems(Update, (

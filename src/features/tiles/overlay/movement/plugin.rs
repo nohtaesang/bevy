@@ -8,11 +8,14 @@ use crate::{
 use super::{cleanup_movement_overlays, movement_overlay_system};
 
 /// Movement plugin that consolidates movement-related systems
-pub struct MovementPlugin;
+pub struct MovementOverlayPlugin;
 
-impl Plugin for MovementPlugin {
+impl Plugin for MovementOverlayPlugin {
     fn build(&self, app: &mut App) {
         app
+            // Initialize movement validation resource
+            .init_resource::<super::MovementValidation>()
+            
             // Cleanup movement overlays when exiting Move state
             .add_systems(OnExit(ActionState::Move), cleanup_movement_overlays)
             

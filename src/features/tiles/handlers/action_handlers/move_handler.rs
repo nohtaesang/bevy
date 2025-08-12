@@ -8,12 +8,12 @@ use crate::{
     features::{
         tiles::{
             utils::world_to_tile_coords,
-            overlay::MovementOverlay,
+            overlay::{MovementOverlay, MovementValidation},
             actions::{select_tile, select_unit, select_enemy, clear_selection, execute_move},
         },
         units::{Unit, Enemy},
     },
-    resources::TileConfig,
+    resources::{TileConfig, TileMap},
 };
 
 #[derive(Debug)]
@@ -32,6 +32,7 @@ pub fn handle_move_state_click(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
+    mut tile_map: ResMut<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<ActionState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
@@ -40,7 +41,7 @@ pub fn handle_move_state_click(
         Query<(&mut Unit, &mut Transform)>,
     )>,
     enemy_query: Query<(Entity, &Enemy)>,
-    movement_overlay_query: Query<&MovementOverlay>,
+    movement_validation: Res<MovementValidation>,
 ) {
     if !mouse_input.just_pressed(MouseButton::Left) {
         return;
@@ -54,16 +55,16 @@ pub fn handle_move_state_click(
     let click_target = determine_click_target(
         world_pos,
         &tile_config,
+        &tile_map,
         &selection_ctx,
-        &unit_queries.p0(),
-        &enemy_query,
-        &movement_overlay_query,
+        &movement_validation,
     );
 
     handle_click_target(
         click_target,
         world_pos,
         &tile_config,
+        &mut tile_map,
         &mut next_selection_state,
         &mut next_action_state,
         &mut selection_ctx,
@@ -75,10 +76,9 @@ pub fn handle_move_state_click(
 fn determine_click_target(
     world_pos: Vec2,
     tile_config: &TileConfig,
+    tile_map: &TileMap,
     selection_ctx: &SelectionCtx,
-    unit_query: &Query<(Entity, &Unit)>,
-    enemy_query: &Query<(Entity, &Enemy)>,
-    movement_overlay_query: &Query<&MovementOverlay>,
+    movement_validation: &MovementValidation,
 ) -> ClickTarget {
     let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) else {
         return ClickTarget::OutsideGrid;
@@ -86,29 +86,21 @@ fn determine_click_target(
     
     let tile_pos = tile_coords.into();
 
-    // Check for unit at clicked position
-    for (unit_entity, unit) in unit_query.iter() {
-        if unit.tile_pos == tile_pos {
-            if Some(unit_entity) == selection_ctx.selected_unit {
+    // Use TileMap to check what's at the clicked position
+    if let Some(entity) = tile_map.get_entity(tile_pos) {
+        if tile_map.has_unit(tile_pos) {
+            if Some(entity) == selection_ctx.selected_unit {
                 return ClickTarget::SelfUnit;
             } else {
                 return ClickTarget::FriendlyUnit;
             }
-        }
-    }
-
-    // Check for enemy at clicked position
-    for (_, enemy) in enemy_query.iter() {
-        if enemy.tile_pos == tile_pos {
+        } else if tile_map.has_enemy(tile_pos) {
             return ClickTarget::Enemy;
         }
     }
 
-    // Check if clicking on movement overlay tile
-    let is_movement_overlay = movement_overlay_query.iter()
-        .any(|overlay| overlay.tile_pos == tile_pos);
-    
-    if is_movement_overlay {
+    // Check if clicking on valid movement tile using HashSet (O(1) lookup)
+    if movement_validation.is_valid_move(tile_pos) {
         ClickTarget::MovementOverlay
     } else {
         ClickTarget::EmptyTile
@@ -119,6 +111,7 @@ fn handle_click_target(
     click_target: ClickTarget,
     world_pos: Vec2,
     tile_config: &TileConfig,
+    tile_map: &mut ResMut<TileMap>,
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
     next_action_state: &mut ResMut<NextState<ActionState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
@@ -165,7 +158,7 @@ fn handle_click_target(
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let target_pos = tile_coords.into();
                 println!("Clicked movement overlay at {:?} - attempting to move", target_pos);
-                execute_move(target_pos, next_action_state, selection_ctx, tile_config, unit_queries);
+                execute_move(target_pos, next_action_state, selection_ctx, tile_config, tile_map, unit_queries);
             }
         },
         ClickTarget::EmptyTile => {

@@ -1,39 +1,43 @@
-//! Movement overlay component and creation functions
+//! Attack overlay component and creation functions
 
 use bevy::prelude::*;
 use crate::{
-    features::tiles::tile_to_world_coords,
+    features::{
+        tiles::tile_to_world_coords,
+        units::Unit,
+    },
     resources::{TileConfig, TileMap},
 };
-use super::pathfinding::find_reachable_tiles;
+use super::range_calculation::find_attackable_tiles;
 
-/// Component for movement range overlay tiles
+/// Component for attack range overlay tiles
 #[derive(Component)]
-pub struct MovementOverlay {
+pub struct AttackOverlay {
     pub tile_pos: IVec2,
 }
 
-/// Creates movement overlay sprites using pathfinding to show reachable tiles
+/// Creates attack overlay sprites using attack range calculation to show attackable tiles
 /// Returns both the overlay entities and the set of valid positions
-pub fn create_movement_overlay_sprites(
+pub fn create_attack_overlay_sprites(
     commands: &mut Commands,
     tile_config: &TileConfig,
     tile_map: &TileMap,
-    center_pos: IVec2,
-    movement_range: i32,
+    attacker_unit: &Unit,
 ) -> (Vec<Entity>, Vec<IVec2>) {
     let mut overlay_entities = Vec::new();
     
-    // Find all reachable tiles using flood fill pathfinding
-    let reachable_tiles = find_reachable_tiles(
-        center_pos,
-        movement_range,
+    // Find all attackable tiles based on unit's attack capabilities
+    let attackable_tiles = find_attackable_tiles(
+        attacker_unit.tile_pos,
+        attacker_unit.attack_direction,
+        attacker_unit.attack_type,
+        &attacker_unit.attack_range,
         tile_config,
         tile_map,
     );
     
-    // Create overlay sprites for reachable tiles
-    for &tile_pos in &reachable_tiles {
+    // Create overlay sprites for attackable tiles
+    for &tile_pos in &attackable_tiles {
         let world_pos_2d = tile_to_world_coords(tile_pos.x, tile_pos.y, tile_config);
         let world_pos = Vec3::new(
             world_pos_2d.x,
@@ -43,17 +47,17 @@ pub fn create_movement_overlay_sprites(
         
         let entity = commands.spawn((
             Sprite {
-                color: Color::srgba(0.0, 1.0, 0.0, 0.3), // Semi-transparent green
+                color: Color::srgba(1.0, 0.0, 0.0, 0.3), // Semi-transparent red
                 custom_size: Some(Vec2::new(tile_config.tile_size, tile_config.tile_size)),
                 ..default()
             },
             Transform::from_translation(world_pos),
             Visibility::Hidden,
-            MovementOverlay { tile_pos },
+            AttackOverlay { tile_pos },
         )).id();
         
         overlay_entities.push(entity);
     }
     
-    (overlay_entities, reachable_tiles)
+    (overlay_entities, attackable_tiles)
 }

@@ -9,7 +9,7 @@ use crate::{
         units::Unit,
         tiles::tile_to_world_coords,
     },
-    resources::TileConfig,
+    resources::{TileConfig, TileMap},
 };
 
 /// Low-level movement execution function
@@ -46,6 +46,7 @@ pub fn execute_move(
     next_action_state: &mut ResMut<NextState<ActionState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
     tile_config: &TileConfig,
+    tile_map: &mut ResMut<TileMap>,
     unit_queries: &mut ParamSet<(
         Query<(Entity, &Unit)>,
         Query<(&mut Unit, &mut Transform)>,
@@ -57,6 +58,8 @@ pub fn execute_move(
             let distance = (unit.tile_pos.x - target_pos.x).abs() + (unit.tile_pos.y - target_pos.y).abs();
             
             if distance <= unit.movement_range {
+                let old_pos = unit.tile_pos;
+                
                 // Update unit's logical position
                 unit.tile_pos = target_pos;
                 unit.movement_range -= distance;
@@ -65,6 +68,9 @@ pub fn execute_move(
                 let world_pos = tile_to_world_coords(target_pos.x, target_pos.y, tile_config);
                 transform.translation.x = world_pos.x;
                 transform.translation.y = world_pos.y;
+                
+                // Update TileMap - move the unit from old position to new position
+                tile_map.move_unit(old_pos, target_pos);
                 
                 // Update selection context
                 selection_ctx.tile = Some(target_pos);

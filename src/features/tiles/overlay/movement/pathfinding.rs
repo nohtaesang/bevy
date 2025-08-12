@@ -1,12 +1,11 @@
-//! Pathfinding algorithms for tile-based movement
+//! Pathfinding for movement overlay
 //!
-//! This module contains pathfinding algorithms and movement validation logic
+//! Contains pathfinding logic specific to movement range calculation
 
 use bevy::prelude::*;
 use std::collections::{HashMap, VecDeque};
 use crate::{
-    features::units::{Unit, Enemy},
-    resources::TileConfig,
+    resources::{TileConfig, TileMap},
 };
 
 /// Find all tiles reachable within movement range using flood fill pathfinding
@@ -14,8 +13,7 @@ pub fn find_reachable_tiles(
     start_pos: IVec2,
     max_movement: i32,
     tile_config: &TileConfig,
-    unit_query: &Query<&Unit>,
-    enemy_query: &Query<&Enemy>,
+    tile_map: &TileMap,
 ) -> Vec<IVec2> {
     let mut reachable = Vec::new();
     let mut visited = HashMap::new();
@@ -56,9 +54,9 @@ pub fn find_reachable_tiles(
                 }
             }
             
-            // Check what's at this tile
-            let has_enemy = enemy_query.iter().any(|enemy| enemy.tile_pos == next_pos);
-            let has_friendly = unit_query.iter().any(|unit| unit.tile_pos == next_pos);
+            // Check what's at this tile using TileMap
+            let has_enemy = tile_map.has_enemy(next_pos);
+            let has_friendly = tile_map.has_unit(next_pos);
             
             // Skip if there's an enemy (impassable)
             if has_enemy {

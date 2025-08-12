@@ -2,29 +2,79 @@
 
 use bevy::prelude::*;
 
+/// Attack direction types
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AttackDirection {
+    /// Can attack in 4 cardinal directions (up, down, left, right)
+    Cardinal,
+    /// Can attack in 8 directions (cardinal + diagonals)
+    EightWay,
+}
+
+/// Attack type that determines line of sight requirements
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AttackType {
+    /// Direct fire - cannot shoot over units (requires clear line of sight)
+    Direct,
+    /// Indirect fire - can shoot over units (no line of sight required)
+    Indirect,
+}
+
+/// Attack range with minimum and maximum distance
+#[derive(Debug, Clone, Copy)]
+pub struct AttackRange {
+    pub min: i32,
+    pub max: i32,
+}
+
+impl AttackRange {
+    pub fn new(min: i32, max: i32) -> Self {
+        Self { min, max }
+    }
+    
+    /// Check if a distance is within attack range
+    pub fn is_in_range(&self, distance: i32) -> bool {
+        distance >= self.min && distance <= self.max
+    }
+}
+
 #[derive(Component, Debug)]
 pub struct Unit {
     pub tile_pos: IVec2,
     pub health: i32,
     pub max_health: i32,
-    pub attack: i32,
+    pub attack_power: i32,
     pub movement_range: i32,
     pub max_movement_range: i32,
+    
+    // Attack capabilities
     pub attack_count: i32,
     pub max_attack_count: i32,
+    pub attack_direction: AttackDirection,
+    pub attack_type: AttackType,
+    pub attack_range: AttackRange,
 }
 
 impl Unit {
-    pub fn new(tile_pos: IVec2) -> Self {
+    /// Create a new unit with specified attack capabilities
+    pub fn new(
+        tile_pos: IVec2, 
+        attack_direction: AttackDirection,
+        attack_type: AttackType,
+        attack_range: AttackRange,
+    ) -> Self {
         Self {
             tile_pos,
             health: 100,
             max_health: 100,
-            attack: 10,
+            attack_power: 10,
             movement_range: 3,
             max_movement_range: 3,
             attack_count: 1,
             max_attack_count: 1,
+            attack_direction,
+            attack_type,
+            attack_range,
         }
     }
     
@@ -60,7 +110,7 @@ pub struct Enemy {
     pub tile_pos: IVec2,
     pub health: i32,
     pub max_health: i32,
-    pub attack: i32,
+    pub attack_power: i32,
 }
 
 impl Enemy {
@@ -69,7 +119,7 @@ impl Enemy {
             tile_pos,
             health: 50,
             max_health: 50,
-            attack: 5,
+            attack_power: 5,
         }
     }
 }

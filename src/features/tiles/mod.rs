@@ -10,12 +10,13 @@ pub mod actions;
 pub mod handlers;
 
 pub use tiles::Tile;
-pub use utils::{tile_to_world_coords, find_reachable_tiles};
+pub use utils::tile_to_world_coords;
 pub use spawn_system::spawn_tiles;
 pub use overlay::{
-    HoverPlugin,
-    SelectedPlugin,
-    MovementPlugin,
+    HoverOverlayPlugin,
+    SelectedOverlayPlugin,
+    MovementOverlayPlugin,
+    AttackOverlayPlugin,
 };
 pub use handlers::{
     handle_idle_state_click,

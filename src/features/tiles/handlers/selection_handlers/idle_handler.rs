@@ -12,7 +12,7 @@ use crate::{
         },
         units::{Unit, Enemy},
     },
-    resources::TileConfig,
+    resources::{TileConfig, TileMap},
 };
 
 /// System that handles mouse clicks when in Idle selection state
@@ -21,6 +21,7 @@ pub fn handle_idle_state_click(
     windows: Query<&Window>,
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
+    tile_map: Res<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<ActionState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
@@ -43,18 +44,13 @@ pub fn handle_idle_state_click(
 
     let tile_pos = tile_coords.into();
 
-    // Check for unit at clicked position
-    for (unit_entity, unit) in unit_query.iter() {
-        if unit.tile_pos == tile_pos {
-            select_unit(unit_entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
+    // Use TileMap to check what's at the clicked position
+    if let Some(entity) = tile_map.get_entity(tile_pos) {
+        if tile_map.has_unit(tile_pos) {
+            select_unit(entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
             return;
-        }
-    }
-
-    // Check for enemy at clicked position
-    for (enemy_entity, enemy) in enemy_query.iter() {
-        if enemy.tile_pos == tile_pos {
-            select_enemy(enemy_entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
+        } else if tile_map.has_enemy(tile_pos) {
+            select_enemy(entity, tile_pos, &mut next_selection_state, &mut next_action_state, &mut selection_ctx);
             return;
         }
     }

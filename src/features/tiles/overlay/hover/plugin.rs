@@ -8,9 +8,9 @@ use crate::{
 use super::{create_hover_overlay_sprite, tile_hover_system};
 
 /// Hover plugin that handles hover overlay functionality
-pub struct HoverPlugin;
+pub struct HoverOverlayPlugin;
 
-impl Plugin for HoverPlugin {
+impl Plugin for HoverOverlayPlugin {
     fn build(&self, app: &mut App) {
         app
             // Setup hover overlay when entering InGame state
