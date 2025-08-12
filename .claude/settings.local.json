@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cargo check:*)",
+      "Bash(find:*)",
+      "Bash(powershell:*)",
+      "Bash(cargo test)",
+      "Bash(cargo:*)",
+      "Bash(mv:*)",
+      "Bash(mkdir:*)",
+      "Bash(sed:*)",
+      "Bash(set RUST_BACKTRACE=1)",
+      "Bash(set RUST_BACKTRACE=full)",
+      "Bash(timeout 20 cargo run)",
+      "Bash(timeout 15 cargo run)",
+      "Bash(timeout 10 cargo run)",
+      "Bash(rm:*)",
+      "Bash(timeout 8 cargo run)",
+      "Bash(move components legacy )",
+      "Bash(move:*)",
+      "Bash(move events legacy )",
+      "Bash(move plugins legacy )",
+      "Bash(move states_old.rs legacy )",
+      "Bash(cp:*)"
+    ],
+    "deny": []
+  }
+}
