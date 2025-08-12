@@ -94,5 +94,4 @@ pub fn spawn_units(
     )).id();
     tile_map.place_unit(pos4, unit4);
     
-    println!("Spawned 4 units with different attack configurations");
 }

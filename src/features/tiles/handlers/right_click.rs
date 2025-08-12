@@ -21,11 +21,9 @@ pub fn handle_right_click_action_cancel(
     // Cancel action states (Move/Attack) back to Idle
     match action_state.get() {
         UnitCommandState::Move => {
-            println!("Right-clicked - canceling Move mode, returning to Idle");
             next_action_state.set(UnitCommandState::Idle);
         },
         UnitCommandState::Attack => {
-            println!("Right-clicked - canceling Attack mode, returning to Idle");
             next_action_state.set(UnitCommandState::Idle);
         },
         UnitCommandState::Idle => {
@@ -56,15 +54,12 @@ pub fn handle_right_click_selection_clear(
     // Clear selection for these states
     match selection_state.get() {
         SelectionState::TileSelected => {
-            println!("Right-clicked - clearing tile selection");
             clear_selection(&mut next_selection_state, &mut next_action_state, &mut selection_ctx);
         },
         SelectionState::UnitSelected => {
-            println!("Right-clicked - clearing unit selection");
             clear_selection(&mut next_selection_state, &mut next_action_state, &mut selection_ctx);
         },
         SelectionState::EnemySelected => {
-            println!("Right-clicked - clearing enemy selection");
             clear_selection(&mut next_selection_state, &mut next_action_state, &mut selection_ctx);
         },
         SelectionState::Idle => {

@@ -26,4 +26,9 @@ impl AttackValidation {
     pub fn clear(&mut self) {
         self.valid_attacks.clear();
     }
+    
+    /// Get valid attacks for debugging
+    pub fn get_valid_attacks(&self) -> &HashSet<IVec2> {
+        &self.valid_attacks
+    }
 }

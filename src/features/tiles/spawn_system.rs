@@ -4,7 +4,6 @@ use super::Tile;
 
 /// System to spawn the tile grid when entering InGame state
 pub fn spawn_tiles(mut commands: Commands, tile_config: Res<TileConfig>) {
-    println!("Spawning {}x{} tile grid...", tile_config.grid_size, tile_config.grid_size);
     
     let total_size = tile_config.tile_size + tile_config.tile_spacing;
     let offset = -(tile_config.grid_size as f32 * total_size) / 2.0 + total_size / 2.0;
@@ -27,5 +26,4 @@ pub fn spawn_tiles(mut commands: Commands, tile_config: Res<TileConfig>) {
         }
     }
     
-    println!("Spawned {} tiles", tile_config.grid_size * tile_config.grid_size);
 }

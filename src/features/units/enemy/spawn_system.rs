@@ -42,5 +42,4 @@ pub fn spawn_enemies(
         }
     }
     
-    println!("Spawned {} enemies", enemy_count);
 }

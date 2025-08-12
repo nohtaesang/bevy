@@ -88,7 +88,14 @@ fn determine_click_target(
     
     let tile_pos = tile_coords.into();
 
-    // Use TileMap to check what's at the clicked position
+    // First check if clicking on valid movement tile (highest priority in Move mode)
+    let is_valid_move = movement_validation.is_valid_move(tile_pos);
+    
+    if is_valid_move {
+        return ClickTarget::MovementOverlay;
+    }
+
+    // Then check what's at the clicked position
     if let Some(entity) = tile_map.get_entity(tile_pos) {
         if tile_map.has_unit(tile_pos) {
             if Some(entity) == selection_ctx.selected_unit {
@@ -101,12 +108,7 @@ fn determine_click_target(
         }
     }
 
-    // Check if clicking on valid movement tile using HashSet (O(1) lookup)
-    if movement_validation.is_valid_move(tile_pos) {
-        ClickTarget::MovementOverlay
-    } else {
-        ClickTarget::EmptyTile
-    }
+    ClickTarget::EmptyTile
 }
 
 fn handle_click_target(
@@ -127,7 +129,6 @@ fn handle_click_target(
         ClickTarget::SelfUnit => {
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 if let Some(selected_unit) = selection_ctx.selected_unit {
-                    println!("Clicked on self while in Move state - reselecting same unit");
                     select_unit(selected_unit, tile_coords.into(), next_selection_state, next_action_state, selection_ctx);
                 }
             }
@@ -136,7 +137,6 @@ fn handle_click_target(
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let tile_pos = tile_coords.into();
                 if let TileContent::Unit(unit_entity) = tile_map.get_content(tile_pos) {
-                    println!("Clicked friendly unit while in Move state - selecting different unit");
                     select_unit(unit_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
                 }
             }
@@ -145,7 +145,6 @@ fn handle_click_target(
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let tile_pos = tile_coords.into();
                 if let TileContent::Enemy(enemy_entity) = tile_map.get_content(tile_pos) {
-                    println!("Clicked enemy while in Move state - selecting enemy");
                     select_enemy(enemy_entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
                 }
             }
@@ -153,19 +152,16 @@ fn handle_click_target(
         ClickTarget::MovementOverlay => {
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let target_pos = tile_coords.into();
-                println!("Clicked movement overlay at {:?} - attempting to move", target_pos);
                 execute_move(target_pos, next_action_state, selection_ctx, tile_config, tile_map, unit_queries);
             }
         },
         ClickTarget::EmptyTile => {
             if let Some(tile_coords) = world_to_tile_coords(world_pos, tile_config) {
                 let tile_pos = tile_coords.into();
-                println!("Clicked empty tile at {:?} while in Move state - selecting tile", tile_pos);
                 select_tile(tile_pos, next_selection_state, next_action_state, selection_ctx);
             }
         },
         ClickTarget::OutsideGrid => {
-            println!("Clicked outside grid while in Move state - clearing selection");
             clear_selection(next_selection_state, next_action_state, selection_ctx);
         },
     }

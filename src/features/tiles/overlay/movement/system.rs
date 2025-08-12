@@ -27,8 +27,45 @@ pub fn cleanup_movement_overlays(
     movement_validation.clear();
 }
 
+/// System that updates MovementValidation when entering Move mode
+/// This runs once per Move mode entry and sets up valid movement positions
+pub fn update_movement_validation_on_enter(
+    selection_ctx: Res<SelectionCtx>,
+    tile_config: Res<TileConfig>,
+    tile_map: Res<TileMap>,
+    unit_query: Query<&Unit>,
+    mut movement_validation: ResMut<super::MovementValidation>,
+) {
+    
+    // Clear any existing validation
+    movement_validation.clear();
+    
+    // If a unit is selected, calculate its valid movements
+    if let Some(unit_entity) = selection_ctx.selected_unit {
+        if let Ok(unit) = unit_query.get(unit_entity) {
+            
+            if unit.movement_range > 0 {
+                // Calculate valid movement positions using pathfinding
+                let valid_positions = super::pathfinding::find_reachable_tiles(
+                    unit.tile_pos,
+                    unit.movement_range,
+                    &tile_config,
+                    &tile_map,
+                );
+                
+                let valid_moves_set: HashSet<IVec2> = valid_positions.into_iter().collect();
+                movement_validation.set_valid_moves(valid_moves_set.clone());
+            } else {
+            }
+        } else {
+        }
+    } else {
+    }
+}
+
 /// System that updates movement overlays for selected unit in Move action state
 /// This system only runs when: PlayerTurn + Move + UnitSelected
+/// Note: MovementValidation is now updated separately in OnEnter system
 pub fn movement_overlay_system(
     mut commands: Commands,
     selection_ctx: Res<SelectionCtx>,
@@ -37,7 +74,6 @@ pub fn movement_overlay_system(
     unit_query: Query<&Unit>,
     mut overlay_query: Query<(Entity, &mut Visibility, &MovementOverlay)>,
     mut overlay_state: Local<MovementOverlayState>,
-    mut movement_validation: ResMut<super::MovementValidation>,
 ) {
     if let Some(unit_entity) = selection_ctx.selected_unit {
         if let Ok(unit) = unit_query.get(unit_entity) {
@@ -63,12 +99,9 @@ pub fn movement_overlay_system(
                         unit.movement_range,
                     );
                     overlay_state.current_overlays = new_overlays;
-                    let valid_moves_set: HashSet<IVec2> = valid_positions.into_iter().collect();
-                    overlay_state.valid_moves = valid_moves_set.clone();
-                    movement_validation.set_valid_moves(valid_moves_set);
+                    overlay_state.valid_moves = valid_positions.into_iter().collect();
                 } else {
                     overlay_state.valid_moves.clear();
-                    movement_validation.clear();
                 }
                 
                 // Update tracking state

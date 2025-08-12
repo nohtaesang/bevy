@@ -15,7 +15,6 @@ pub fn select_tile(
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Selecting tile at {:?}", tile_pos);
     selection_ctx.tile = Some(tile_pos);
     selection_ctx.selected_unit = None;
     selection_ctx.selected_enemy = None;
@@ -31,7 +30,6 @@ pub fn select_unit(
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Selecting unit {:?} at {:?}", unit_entity, tile_pos);
     selection_ctx.tile = Some(tile_pos);
     selection_ctx.selected_unit = Some(unit_entity);
     selection_ctx.selected_enemy = None;
@@ -47,7 +45,6 @@ pub fn select_enemy(
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Selecting enemy {:?} at {:?}", enemy_entity, tile_pos);
     selection_ctx.tile = Some(tile_pos);
     selection_ctx.selected_unit = None;
     selection_ctx.selected_enemy = Some(enemy_entity);
@@ -61,7 +58,6 @@ pub fn clear_selection(
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Clearing selection");
     selection_ctx.tile = None;
     selection_ctx.selected_unit = None;
     selection_ctx.selected_enemy = None;

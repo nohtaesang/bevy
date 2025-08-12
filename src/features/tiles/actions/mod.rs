@@ -4,6 +4,8 @@
 
 pub mod select_actions;
 pub mod move_actions;
+pub mod attack_actions;
 
 pub use select_actions::*;
 pub use move_actions::*;
+pub use attack_actions::*;

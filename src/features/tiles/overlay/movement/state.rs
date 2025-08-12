@@ -26,4 +26,9 @@ impl MovementValidation {
     pub fn clear(&mut self) {
         self.valid_moves.clear();
     }
+    
+    /// Get valid moves for debugging
+    pub fn get_valid_moves(&self) -> &HashSet<IVec2> {
+        &self.valid_moves
+    }
 }

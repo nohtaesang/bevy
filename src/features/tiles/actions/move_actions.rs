@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use crate::{
     states::in_game::UnitCommandState,
     features::{
-        tiles::{SelectionCtx, tile_to_world_coords, TileConfig, TileMap},
+        tiles::{SelectionCtx, tile_to_world_coords, TileConfig, TileMap, overlay::movement::pathfinding::find_reachable_tiles},
         units::Unit,
     },
 };
@@ -28,13 +28,9 @@ pub fn execute_movement(
         // Return to idle action state after movement
         next_action_state.set(UnitCommandState::Idle);
         
-        println!("Unit moved to ({}, {}), remaining movement: {}", 
-                 target_pos.x, target_pos.y, unit.movement_range);
         
         true
     } else {
-        println!("Movement failed: distance {} exceeds remaining movement range {}", 
-                 distance, unit.movement_range);
         false
     }
 }
@@ -53,11 +49,21 @@ pub fn execute_move(
 ) -> bool {
     if let Some(selected_unit_entity) = selection_ctx.selected_unit {
         if let Ok((mut unit, mut transform)) = unit_queries.p1().get_mut(selected_unit_entity) {
-            // Calculate Manhattan distance for movement validation
-            let distance = (unit.tile_pos.x - target_pos.x).abs() + (unit.tile_pos.y - target_pos.y).abs();
+            // Use pathfinding to validate movement (same as overlay system)
+            let reachable_tiles = find_reachable_tiles(
+                unit.tile_pos,
+                unit.movement_range,
+                tile_config,
+                tile_map,
+            );
             
-            if distance <= unit.movement_range {
+            // Check if target position is reachable
+            if reachable_tiles.contains(&target_pos) {
                 let old_pos = unit.tile_pos;
+                
+                // Calculate actual movement cost using Manhattan distance
+                // This should match the pathfinding algorithm's step-by-step cost
+                let distance = (unit.tile_pos.x - target_pos.x).abs() + (unit.tile_pos.y - target_pos.y).abs();
                 
                 // Update unit's logical position
                 unit.tile_pos = target_pos;
@@ -77,17 +83,12 @@ pub fn execute_move(
                 // Return to idle action state after movement
                 next_action_state.set(UnitCommandState::Idle);
                 
-                println!("Unit moved to ({}, {}), remaining movement: {}", 
-                         target_pos.x, target_pos.y, unit.movement_range);
                 
                 return true;
             } else {
-                println!("Movement failed: distance {} exceeds remaining movement range {}", 
-                         distance, unit.movement_range);
                 return false;
             }
         }
     }
-    println!("Movement failed - no unit selected");
     false
 }

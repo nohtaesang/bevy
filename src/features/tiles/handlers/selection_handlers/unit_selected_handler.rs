@@ -15,7 +15,6 @@ fn handle_move_action_when_unit_selected(
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Unit moving from ({}, {}) to ({}, {})", from_tile.x, from_tile.y, to_tile.x, to_tile.y);
     // TODO: Check if target tile is valid for movement
     // TODO: Execute actual move command
     
@@ -30,7 +29,6 @@ fn handle_attack_action_when_unit_selected(
     to_tile: IVec2,
     next_action_state: &mut ResMut<NextState<UnitCommandState>>,
 ) {
-    println!("Unit attacking from ({}, {}) to ({}, {})", from_tile.x, from_tile.y, to_tile.x, to_tile.y);
     // TODO: Check if target tile has enemy for attack
     // TODO: Execute actual attack command
     
@@ -55,7 +53,6 @@ fn handle_idle_action_when_unit_selected(
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
-    println!("Unit selected: clicked different tile ({}, {}) - changing selection", tile_pos.x, tile_pos.y);
     selection_ctx.tile = Some(tile_pos);
     selection_ctx.selected_unit = None;
     selection_ctx.selected_enemy = None;

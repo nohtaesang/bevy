@@ -5,7 +5,7 @@ use crate::{
     states::in_game::{UnitCommandState, SelectionState, TurnState},
     features::tiles::handlers::unit_command_handlers::handle_move_state_click,
 };
-use super::{cleanup_movement_overlays, movement_overlay_system};
+use super::{cleanup_movement_overlays, movement_overlay_system, update_movement_validation_on_enter};
 
 /// Movement plugin that consolidates movement-related systems
 pub struct MovementOverlayPlugin;
@@ -15,6 +15,9 @@ impl Plugin for MovementOverlayPlugin {
         app
             // Initialize movement validation resource
             .init_resource::<super::MovementValidation>()
+            
+            // Update MovementValidation when entering Move mode
+            .add_systems(OnEnter(UnitCommandState::Move), update_movement_validation_on_enter)
             
             // Cleanup movement overlays when exiting Move state
             .add_systems(OnExit(UnitCommandState::Move), cleanup_movement_overlays)

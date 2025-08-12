@@ -21,7 +21,8 @@
       "Bash(move events legacy )",
       "Bash(move plugins legacy )",
       "Bash(move states_old.rs legacy )",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(rg:*)"
     ],
     "deny": []
   }
