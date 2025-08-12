@@ -11,9 +11,11 @@ pub struct EnemyHealthText {
 /// Spawn health text for enemy units
 pub fn spawn_enemy_health_displays(
     mut commands: Commands,
-    enemy_query: Query<(Entity, &Enemy), (With<Enemy>, Without<EnemyHealthText>)>,
+    enemy_query: Query<Entity, (With<Enemy>, Added<Enemy>)>,
+    enemy_components: Query<&Enemy>,
 ) {
-    for (entity, enemy) in enemy_query.iter() {
+    for entity in enemy_query.iter() {
+        let Ok(enemy) = enemy_components.get(entity) else { continue; };
         let health_text = format!("{}/{}", enemy.health, enemy.max_health);
         let health_ratio = enemy.health as f32 / enemy.max_health as f32;
         let color = if health_ratio > 0.6 {

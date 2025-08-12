@@ -27,7 +27,7 @@ impl Plugin for TilesPlugin {
             // Initialize resources
             .init_resource::<TileConfig>()
             .init_resource::<SelectionCtx>()
-            .insert_resource(TileMap::new(10)) // Initialize with 10x10 grid
+            .insert_resource(TileMap::new(30)) // Initialize with 30x30 grid
             
             // Initialize sub-states
             .add_sub_state::<SelectionState>()

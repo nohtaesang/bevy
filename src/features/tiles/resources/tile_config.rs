@@ -13,7 +13,7 @@ impl Default for TileConfig {
         Self {
             tile_size: 64.0,
             tile_spacing: 2.0,
-            grid_size: 10,
+            grid_size: 30,
         }
     }
 }

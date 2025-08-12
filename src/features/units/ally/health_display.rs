@@ -11,9 +11,11 @@ pub struct AllyHealthText {
 /// Spawn health text for ally units
 pub fn spawn_ally_health_displays(
     mut commands: Commands,
-    unit_query: Query<(Entity, &Unit), (With<Unit>, Without<AllyHealthText>)>,
+    unit_query: Query<Entity, (With<Unit>, Added<Unit>)>,
+    unit_components: Query<&Unit>,
 ) {
-    for (entity, unit) in unit_query.iter() {
+    for entity in unit_query.iter() {
+        let Ok(unit) = unit_components.get(entity) else { continue; };
         let health_text = format!("{}/{}", unit.health, unit.max_health);
         let health_ratio = unit.health as f32 / unit.max_health as f32;
         let color = if health_ratio > 0.6 {
