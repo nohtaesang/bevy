@@ -2,10 +2,10 @@
 //!
 //! This module contains all click handling logic organized into submodules
 
-pub mod action_handlers;
+pub mod unit_command_handlers;
 pub mod selection_handlers;
 pub mod right_click;
 
-pub use action_handlers::*;
+pub use unit_command_handlers::*;
 pub use selection_handlers::*;
 pub use right_click::*;

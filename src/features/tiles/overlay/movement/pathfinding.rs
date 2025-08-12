@@ -5,7 +5,7 @@
 use bevy::prelude::*;
 use std::collections::{HashMap, VecDeque};
 use crate::{
-    resources::{TileConfig, TileMap},
+    features::tiles::{TileConfig, TileMap},
 };
 
 /// Find all tiles reachable within movement range using flood fill pathfinding

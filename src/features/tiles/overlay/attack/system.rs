@@ -3,9 +3,7 @@
 use bevy::prelude::*;
 use std::collections::HashSet;
 use crate::{
-    core::SelectionCtx,
-    features::units::Unit,
-    resources::{TileConfig, TileMap},
+    features::{tiles::{SelectionCtx, TileConfig, TileMap}, units::Unit},
 };
 use super::{AttackOverlay, create_attack_overlay_sprites};
 

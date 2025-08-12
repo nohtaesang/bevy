@@ -4,15 +4,16 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{SelectionState, ActionState, SelectionCtx},
+    states::in_game::{SelectionState, UnitCommandState},
     features::{
+        tiles::SelectionCtx,
         tiles::{
             utils::world_to_tile_coords,
             actions::{select_tile, select_unit, select_enemy, clear_selection},
         },
         units::{Unit, Enemy},
     },
-    resources::TileConfig,
+    features::tiles::TileConfig,
 };
 
 /// System that handles mouse clicks when in Attack action state
@@ -22,7 +23,7 @@ pub fn handle_attack_state_click(
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
     unit_query: Query<(Entity, &Unit)>,
     enemy_query: Query<(Entity, &Enemy)>,

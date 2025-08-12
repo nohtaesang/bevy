@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::resources::TileConfig;
+use crate::features::tiles::TileConfig;
 
 /// Convert tile coordinates to world position
 pub fn tile_to_world_coords(tile_x: i32, tile_y: i32, tile_config: &TileConfig) -> Vec2 {

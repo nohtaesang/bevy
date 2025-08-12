@@ -2,8 +2,8 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::AppState,
-    resources::TileConfig,
+    states::AppState,
+    features::tiles::TileConfig,
 };
 use super::{create_selected_overlay_sprite, selected_overlay_system};
 

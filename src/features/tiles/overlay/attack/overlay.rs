@@ -3,10 +3,9 @@
 use bevy::prelude::*;
 use crate::{
     features::{
-        tiles::tile_to_world_coords,
+        tiles::{tile_to_world_coords, TileConfig, TileMap},
         units::Unit,
     },
-    resources::{TileConfig, TileMap},
 };
 use super::range_calculation::find_attackable_tiles;
 

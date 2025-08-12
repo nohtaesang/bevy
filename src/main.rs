@@ -6,7 +6,7 @@ mod features;
 mod ui;
 mod resources;
 
-use core::AppState;
+use states::AppState;
 use states::in_game::InGamePlugin;
 
 

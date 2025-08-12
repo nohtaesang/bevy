@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 use crate::{
-    core::{AppState, TurnState, SelectionState, ActionState, SelectionCtx}, 
-    resources::{TileConfig, TileMap}, 
+    states::{AppState, in_game::{TurnState, SelectionState, UnitCommandState}}, 
     features::{
         camera::CameraPlugin, 
         tiles::{
+            TileConfig, TileMap,
             spawn_tiles, 
             handle_idle_state_click,
             handle_tile_selected_click,
@@ -17,6 +17,7 @@ use crate::{
             SelectedOverlayPlugin,
             MovementOverlayPlugin,
             AttackOverlayPlugin,
+            SelectionCtx,
         },
         units::{spawn_units, spawn_enemies},
     },
@@ -37,7 +38,7 @@ impl Plugin for InGamePlugin {
             // Initialize sub-states
             .add_sub_state::<TurnState>()
             .add_sub_state::<SelectionState>()
-            .add_sub_state::<ActionState>()
+            .add_sub_state::<UnitCommandState>()
             
             // Add plugins
             .add_plugins((CameraPlugin, HoverOverlayPlugin, SelectedOverlayPlugin, MovementOverlayPlugin, AttackOverlayPlugin))

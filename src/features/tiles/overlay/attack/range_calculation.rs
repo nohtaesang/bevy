@@ -5,8 +5,10 @@
 use bevy::prelude::*;
 use std::collections::HashSet;
 use crate::{
-    features::units::{AttackDirection, AttackType, AttackRange},
-    resources::{TileConfig, TileMap},
+    features::{
+        units::{AttackDirection, AttackType, AttackRange},
+        tiles::{TileConfig, TileMap},
+    },
 };
 
 /// Find all tiles that can be attacked from the given position

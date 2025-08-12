@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::core::AppState;
+use crate::states::AppState;
 
 /// Turn state (SubState of InGame)
 #[derive(SubStates, Debug, Clone, Eq, PartialEq, Hash, Default)]
@@ -24,17 +24,10 @@ pub enum SelectionState {
 /// Player's action state (SubState of PlayerTurn)
 #[derive(SubStates, Debug, Clone, Eq, PartialEq, Hash, Default)]
 #[source(TurnState = TurnState::PlayerTurn)]
-pub enum ActionState {
+pub enum UnitCommandState {
     #[default]
     Idle,
     Move,
     Attack,
 }
 
-/// Selection context resource to hold coordinates and entity references
-#[derive(Resource, Default, Debug)]
-pub struct SelectionCtx {
-    pub tile: Option<IVec2>,
-    pub selected_unit: Option<Entity>,
-    pub selected_enemy: Option<Entity>,
-}

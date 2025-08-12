@@ -8,10 +8,12 @@ pub mod spawn_system;
 pub mod overlay;
 pub mod actions;
 pub mod handlers;
+pub mod resources;
 
 pub use tiles::Tile;
 pub use utils::tile_to_world_coords;
 pub use spawn_system::spawn_tiles;
+pub use resources::{TileMap, TileConfig, SelectionCtx};
 pub use overlay::{
     HoverOverlayPlugin,
     SelectedOverlayPlugin,

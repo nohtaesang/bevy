@@ -1,14 +1,17 @@
 //! Right-click handling for action and selection cancellation
 
 use bevy::prelude::*;
-use crate::core::{SelectionState, ActionState, SelectionCtx};
+use crate::{
+    states::in_game::{SelectionState, UnitCommandState},
+    features::tiles::SelectionCtx,
+};
 use crate::features::tiles::actions::clear_selection;
 
 /// System that handles right-click to cancel actions when in Move or Attack mode
 pub fn handle_right_click_action_cancel(
     mouse_input: Res<ButtonInput<MouseButton>>,
-    action_state: Res<State<ActionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    action_state: Res<State<UnitCommandState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
 ) {
     
     if !mouse_input.just_pressed(MouseButton::Right) {
@@ -17,15 +20,15 @@ pub fn handle_right_click_action_cancel(
     
     // Cancel action states (Move/Attack) back to Idle
     match action_state.get() {
-        ActionState::Move => {
+        UnitCommandState::Move => {
             println!("Right-clicked - canceling Move mode, returning to Idle");
-            next_action_state.set(ActionState::Idle);
+            next_action_state.set(UnitCommandState::Idle);
         },
-        ActionState::Attack => {
+        UnitCommandState::Attack => {
             println!("Right-clicked - canceling Attack mode, returning to Idle");
-            next_action_state.set(ActionState::Idle);
+            next_action_state.set(UnitCommandState::Idle);
         },
-        ActionState::Idle => {
+        UnitCommandState::Idle => {
             // Idle action state - do nothing here, handled by selection cancel
         },
     }
@@ -35,9 +38,9 @@ pub fn handle_right_click_action_cancel(
 pub fn handle_right_click_selection_clear(
     mouse_input: Res<ButtonInput<MouseButton>>,
     selection_state: Res<State<SelectionState>>,
-    action_state: Res<State<ActionState>>,
+    action_state: Res<State<UnitCommandState>>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
 ) {
     
@@ -46,7 +49,7 @@ pub fn handle_right_click_selection_clear(
     }
     
     // Only clear selection if we're in Idle action state
-    if *action_state.get() != ActionState::Idle {
+    if *action_state.get() != UnitCommandState::Idle {
         return;
     }
     

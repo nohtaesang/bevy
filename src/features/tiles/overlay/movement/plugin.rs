@@ -2,8 +2,8 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{ActionState, SelectionState, TurnState},
-    features::tiles::handlers::action_handlers::handle_move_state_click,
+    states::in_game::{UnitCommandState, SelectionState, TurnState},
+    features::tiles::handlers::unit_command_handlers::handle_move_state_click,
 };
 use super::{cleanup_movement_overlays, movement_overlay_system};
 
@@ -17,20 +17,20 @@ impl Plugin for MovementOverlayPlugin {
             .init_resource::<super::MovementValidation>()
             
             // Cleanup movement overlays when exiting Move state
-            .add_systems(OnExit(ActionState::Move), cleanup_movement_overlays)
+            .add_systems(OnExit(UnitCommandState::Move), cleanup_movement_overlays)
             
             // Movement systems that run during Move action state
             .add_systems(Update, (
                 // Click handling for Move state
                 handle_move_state_click.run_if(
                     in_state(TurnState::PlayerTurn)
-                    .and(in_state(ActionState::Move))
+                    .and(in_state(UnitCommandState::Move))
                 ),
                 
                 // Movement overlay display
                 movement_overlay_system.run_if(
                     in_state(TurnState::PlayerTurn)
-                    .and(in_state(ActionState::Move))
+                    .and(in_state(UnitCommandState::Move))
                     .and(in_state(SelectionState::UnitSelected))
                 ),
             ));

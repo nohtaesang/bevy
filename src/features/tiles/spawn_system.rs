@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::resources::TileConfig;
+use crate::features::tiles::TileConfig;
 use super::Tile;
 
 /// System to spawn the tile grid when entering InGame state

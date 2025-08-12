@@ -4,15 +4,15 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{SelectionState, ActionState, SelectionCtx},
+    states::in_game::{SelectionState, UnitCommandState},
     features::{
         tiles::{
+            SelectionCtx, TileConfig, TileMap,
             utils::world_to_tile_coords,
             actions::{select_tile, select_unit, select_enemy, clear_selection},
         },
         units::{Unit, Enemy},
     },
-    resources::{TileConfig, TileMap},
 };
 
 /// System that handles mouse clicks when in Idle selection state
@@ -23,7 +23,7 @@ pub fn handle_idle_state_click(
     tile_config: Res<TileConfig>,
     tile_map: Res<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
     unit_query: Query<(Entity, &Unit)>,
     enemy_query: Query<(Entity, &Enemy)>,

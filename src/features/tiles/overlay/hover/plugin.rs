@@ -2,8 +2,8 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::AppState,
-    resources::TileConfig,
+    states::AppState,
+    features::tiles::TileConfig,
 };
 use super::{create_hover_overlay_sprite, tile_hover_system};
 

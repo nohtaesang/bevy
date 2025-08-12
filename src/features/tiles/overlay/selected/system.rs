@@ -2,9 +2,7 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::SelectionCtx,
-    features::tiles::tile_to_world_coords,
-    resources::TileConfig,
+    features::tiles::{tile_to_world_coords, SelectionCtx, TileConfig},
 };
 use super::SelectedOverlay;
 

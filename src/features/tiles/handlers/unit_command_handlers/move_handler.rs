@@ -4,8 +4,9 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{SelectionState, ActionState, SelectionCtx},
+    states::in_game::{SelectionState, UnitCommandState},
     features::{
+        tiles::SelectionCtx,
         tiles::{
             utils::world_to_tile_coords,
             overlay::{MovementOverlay, MovementValidation},
@@ -13,7 +14,7 @@ use crate::{
         },
         units::{Unit, Enemy},
     },
-    resources::{TileConfig, TileMap},
+    features::tiles::{TileConfig, TileMap},
 };
 
 #[derive(Debug)]
@@ -34,7 +35,7 @@ pub fn handle_move_state_click(
     tile_config: Res<TileConfig>,
     mut tile_map: ResMut<TileMap>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
     mut unit_queries: ParamSet<(
         Query<(Entity, &Unit)>,
@@ -113,7 +114,7 @@ fn handle_click_target(
     tile_config: &TileConfig,
     tile_map: &mut ResMut<TileMap>,
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
     unit_queries: &mut ParamSet<(
         Query<(Entity, &Unit)>,

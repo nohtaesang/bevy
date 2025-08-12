@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use crate::features::tiles::tile_to_world_coords;
 use crate::features::tiles::utils::world_to_tile_coords;
-use crate::resources::TileConfig;
+use crate::features::tiles::TileConfig;
 use super::HoverOverlay;
 
 pub fn tile_hover_system(

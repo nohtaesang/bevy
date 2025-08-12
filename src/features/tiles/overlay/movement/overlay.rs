@@ -2,8 +2,7 @@
 
 use bevy::prelude::*;
 use crate::{
-    features::tiles::tile_to_world_coords,
-    resources::{TileConfig, TileMap},
+    features::tiles::{tile_to_world_coords, TileConfig, TileMap},
 };
 use super::pathfinding::find_reachable_tiles;
 

@@ -4,19 +4,18 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{ActionState, SelectionCtx},
+    states::in_game::UnitCommandState,
     features::{
+        tiles::{SelectionCtx, tile_to_world_coords, TileConfig, TileMap},
         units::Unit,
-        tiles::tile_to_world_coords,
     },
-    resources::{TileConfig, TileMap},
 };
 
 /// Low-level movement execution function
 pub fn execute_movement(
     unit: &mut Unit,
     target_pos: IVec2,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
 ) -> bool {
     // Calculate Manhattan distance for movement validation
     let distance = (unit.tile_pos.x - target_pos.x).abs() + (unit.tile_pos.y - target_pos.y).abs();
@@ -27,7 +26,7 @@ pub fn execute_movement(
         unit.movement_range -= distance;
         
         // Return to idle action state after movement
-        next_action_state.set(ActionState::Idle);
+        next_action_state.set(UnitCommandState::Idle);
         
         println!("Unit moved to ({}, {}), remaining movement: {}", 
                  target_pos.x, target_pos.y, unit.movement_range);
@@ -43,7 +42,7 @@ pub fn execute_movement(
 /// Execute movement to target position with Transform update
 pub fn execute_move(
     target_pos: IVec2,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
     tile_config: &TileConfig,
     tile_map: &mut ResMut<TileMap>,
@@ -76,7 +75,7 @@ pub fn execute_move(
                 selection_ctx.tile = Some(target_pos);
                 
                 // Return to idle action state after movement
-                next_action_state.set(ActionState::Idle);
+                next_action_state.set(UnitCommandState::Idle);
                 
                 println!("Unit moved to ({}, {}), remaining movement: {}", 
                          target_pos.x, target_pos.y, unit.movement_range);

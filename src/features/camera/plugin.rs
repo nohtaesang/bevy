@@ -1,7 +1,7 @@
 //! Camera plugin
 
 use bevy::prelude::*;
-use crate::core::AppState;
+use crate::states::AppState;
 use super::{camera_movement, camera_rotation, camera_zoom};
 
 /// Camera plugin that handles all camera controls

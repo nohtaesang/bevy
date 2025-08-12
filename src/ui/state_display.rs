@@ -2,8 +2,8 @@
 
 use bevy::prelude::*;
 use crate::{
-    core::{TurnState, SelectionState, ActionState, SelectionCtx},
-    features::units::{Unit, Enemy},
+    states::in_game::{TurnState, SelectionState, UnitCommandState},
+    features::{units::{Unit, Enemy}, tiles::SelectionCtx},
 };
 
 #[derive(Component)]
@@ -55,7 +55,7 @@ pub fn update_state_display(
     mut text_query: Query<&mut Text, With<StateText>>,
     turn_state: Res<State<TurnState>>,
     selection_state: Res<State<SelectionState>>,
-    action_state: Res<State<ActionState>>,
+    action_state: Res<State<UnitCommandState>>,
     selection_ctx: Res<SelectionCtx>,
     unit_query: Query<&Unit>,
     enemy_query: Query<&Enemy>,

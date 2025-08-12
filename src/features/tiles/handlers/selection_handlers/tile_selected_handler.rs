@@ -1,11 +1,10 @@
 use bevy::prelude::*;
 use crate::{
-    core::{SelectionState, ActionState, SelectionCtx},
+    states::in_game::{SelectionState, UnitCommandState},
     features::{
-        tiles::utils::world_to_tile_coords,
+        tiles::{SelectionCtx, TileConfig, utils::world_to_tile_coords},
         units::{Unit, Enemy},
     },
-    resources::TileConfig,
 };
 use crate::features::tiles::actions::{clear_selection, select_tile, select_unit, select_enemy};
 
@@ -15,7 +14,7 @@ fn handle_unit_click_when_tile_selected(
     entity: Entity,
     tile_pos: IVec2,
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
     select_unit(entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
@@ -26,7 +25,7 @@ fn handle_enemy_click_when_tile_selected(
     entity: Entity,
     tile_pos: IVec2,
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
     select_enemy(entity, tile_pos, next_selection_state, next_action_state, selection_ctx);
@@ -36,7 +35,7 @@ fn handle_enemy_click_when_tile_selected(
 fn handle_empty_tile_click_when_tile_selected(
     tile_pos: IVec2,
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
     select_tile(tile_pos, next_selection_state, next_action_state, selection_ctx);
@@ -45,7 +44,7 @@ fn handle_empty_tile_click_when_tile_selected(
 /// Handle clicking outside grid when tile is selected
 fn handle_outside_grid_click_when_tile_selected(
     next_selection_state: &mut ResMut<NextState<SelectionState>>,
-    next_action_state: &mut ResMut<NextState<ActionState>>,
+    next_action_state: &mut ResMut<NextState<UnitCommandState>>,
     selection_ctx: &mut ResMut<SelectionCtx>,
 ) {
     clear_selection(next_selection_state, next_action_state, selection_ctx);
@@ -58,7 +57,7 @@ pub fn handle_tile_selected_click(
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
     mut next_selection_state: ResMut<NextState<SelectionState>>,
-    mut next_action_state: ResMut<NextState<ActionState>>,
+    mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
     unit_query: Query<(Entity, &Unit)>,
     enemy_query: Query<(Entity, &Enemy)>,
