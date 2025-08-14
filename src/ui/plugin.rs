@@ -5,6 +5,7 @@ use crate::states::AppState;
 use super::{
     state_display::{setup_state_display_ui, update_state_display},
     hover_info::{setup_hover_info_ui, update_hover_info, cleanup_hover_info_ui},
+    unit_info::{setup_unit_info_ui, update_unit_info, cleanup_unit_info_ui},
 };
 
 pub struct UIPlugin;
@@ -16,15 +17,20 @@ impl Plugin for UIPlugin {
             .add_systems(OnEnter(AppState::InGame), (
                 setup_state_display_ui,
                 setup_hover_info_ui,
+                setup_unit_info_ui,
             ))
             
             // Cleanup UI when exiting InGame state
-            .add_systems(OnExit(AppState::InGame), cleanup_hover_info_ui)
+            .add_systems(OnExit(AppState::InGame), (
+                cleanup_hover_info_ui,
+                cleanup_unit_info_ui,
+            ))
             
             // Update UI every frame while in InGame
             .add_systems(Update, (
                 update_state_display,
                 update_hover_info,
+                update_unit_info.run_if(resource_changed::<crate::features::tiles::selection::SelectionCtx>),
             ).run_if(in_state(AppState::InGame)));
     }
 }

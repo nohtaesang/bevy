@@ -4,10 +4,7 @@
 
 use bevy::prelude::*;
 use crate::{
-    features::{
-        tiles::{TileConfig, TileMap, utils::world_to_tile_coords, resources::TileContent},
-        units::{Unit, Enemy},
-    },
+    features::tiles::{units::{Unit, Enemy}, TileConfig, TileMap, world_to_tile_coords, TileContent},
 };
 
 /// Marker component for the hover info UI container

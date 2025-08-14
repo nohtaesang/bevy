@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use crate::{
     states::in_game::{TurnState, SelectionState, UnitCommandState},
-    features::{units::{Unit, Enemy}, tiles::SelectionCtx},
+    features::tiles::{units::{Unit, Enemy}, SelectionCtx},
 };
 
 #[derive(Component)]

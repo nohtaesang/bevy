@@ -22,8 +22,10 @@
       "Bash(move plugins legacy )",
       "Bash(move states_old.rs legacy )",
       "Bash(cp:*)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(rd:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

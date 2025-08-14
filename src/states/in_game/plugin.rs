@@ -4,7 +4,7 @@ use crate::{
     features::{
         camera::CameraPlugin,
         tiles::TilesPlugin,
-        units::UnitsPlugin,
+        scenario::Level1Plugin,
     },
     ui::UIPlugin,
     temp::TempPlugin,
@@ -23,7 +23,7 @@ impl Plugin for InGamePlugin {
             .add_plugins((
                 CameraPlugin,
                 TilesPlugin,
-                UnitsPlugin,
+                Level1Plugin,  // Level 1 scenario with 11x11 grid and center player
                 UIPlugin,
                 TempPlugin,
             ));
