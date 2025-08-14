@@ -5,11 +5,11 @@ use crate::{
     states::in_game::{SelectionState, UnitCommandState},
     features::{
         tiles::{
-            core::{TileConfig, TileMap, TileContent, MoveOutcome, tile_to_world_coords, world_to_tile_coords, TileMoved, Team},
+            core::{TileConfig, TileMap, TileContent, MoveOutcome, tile_to_world_coords, world_to_tile_coords, TileMoved, Team, components::TileCoords},
             selection::{SelectionCtx, select_tile, select_unit, select_enemy, clear_selection},
-            visual::MovementValidation,
+            interaction::MovementValidation,
+            units::bundles::UnitMarker,
         },
-        tiles::units::{Unit, Enemy},
     },
 };
 use super::super::{
@@ -189,18 +189,22 @@ pub fn execute_movement_command(
     tile_config: &TileConfig,
     tile_map: &mut ResMut<TileMap>,
     path_cache: &mut ResMut<PathCache>,
-    unit_query: &mut Query<(&mut Unit, &mut Transform, &Team)>,
+    unit_query: &mut Query<(&mut TileCoords, &mut Transform, &Team), With<UnitMarker>>,
     command_events: &mut EventWriter<CommandCompletedEvent>,
     tile_moved: &mut EventWriter<TileMoved>,
 ) -> CommandResult {
-    let Ok((mut unit, mut transform, team)) = unit_query.get_mut(entity) else {
+    let Ok((mut tile_coords, mut transform, team)) = unit_query.get_mut(entity) else {
         return CommandResult::Failed { 
             reason: "Unit entity not found".to_string() 
         };
     };
 
+    // For now, use a default movement range of 3
+    // TODO: Get movement range from BaseStats or CurrentStats component
+    let movement_range = 3;
+    
     // Check cache first
-    if let Some(cached_validity) = path_cache.get_path_validity(from, to, unit.movement_range) {
+    if let Some(cached_validity) = path_cache.get_path_validity(from, to, movement_range) {
         if !cached_validity {
             return CommandResult::Failed { 
                 reason: "Cached path invalid".to_string() 
@@ -210,9 +214,9 @@ pub fn execute_movement_command(
         // Calculate and cache path validity
         // Simple distance check for now
         // TODO: Implement proper pathfinding
-        let distance = (unit.tile_pos.x - to.x).abs() + (unit.tile_pos.y - to.y).abs();
-        let is_valid = distance <= unit.movement_range;
-        path_cache.cache_path_validity(from, to, unit.movement_range, is_valid);
+        let distance = (from.x - to.x).abs() + (from.y - to.y).abs();
+        let is_valid = distance <= movement_range;
+        path_cache.cache_path_validity(from, to, movement_range, is_valid);
         
         if !is_valid {
             return CommandResult::Failed { 
@@ -224,7 +228,7 @@ pub fn execute_movement_command(
     // Calculate movement cost
     let distance = (from.x - to.x).abs() + (from.y - to.y).abs();
     
-    if distance > unit.movement_range {
+    if distance > movement_range {
         return CommandResult::Failed { 
             reason: "Insufficient movement range".to_string() 
         };
@@ -235,9 +239,10 @@ pub fn execute_movement_command(
         MoveOutcome::Moved { entity: moved_entity } => {
             // TileMap update succeeded - now update other systems
             
-            // Update unit component
-            unit.tile_pos = to;
-            unit.movement_range -= distance;
+            // Update tile coordinates
+            tile_coords.x = to.x;
+            tile_coords.y = to.y;
+            // TODO: Update movement_range in CurrentStats component
             
             // Update visual position
             let world_pos = tile_to_world_coords(to.x, to.y, tile_config);
@@ -256,7 +261,7 @@ pub fn execute_movement_command(
             path_cache.invalidate_position(from);
             path_cache.invalidate_position(to);
             
-            info!("Executed movement from {:?} to {:?}, remaining movement: {}", from, to, unit.movement_range);
+            info!("Executed movement from {:?} to {:?}", from, to);
             CommandResult::Success
         },
         MoveOutcome::Blocked => {

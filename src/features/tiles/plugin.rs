@@ -26,8 +26,8 @@ impl Plugin for TilesPlugin {
             
             // Add sub-plugins in order: interaction → visual
             .add_plugins((
-                InteractionPlugin,  // Handles input and updates HoverTile
-                VisualPlugin,       // Reads HoverTile and renders
+                InteractionPlugin,  // Handles input, range calculations, and updates resources
+                VisualPlugin,       // Reads resources and renders
                 UnitsPlugin,
             ))
             
@@ -40,10 +40,6 @@ impl Plugin for TilesPlugin {
             .insert_resource(PathCache::new(1000))
             .init_resource::<CommandStats>()
             .init_resource::<CommandSystemState>()
-            
-            // Initialize visual resources
-            .init_resource::<crate::features::tiles::visual::MovementValidation>()
-            .init_resource::<crate::features::tiles::visual::AttackValidation>()
             
             // Add command events
             .add_event::<CommandCompletedEvent>()

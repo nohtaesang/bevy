@@ -3,109 +3,62 @@
 //! This module handles attack range visualization
 
 use bevy::prelude::*;
-use std::collections::HashSet;
 use crate::features::tiles::{
-    core::{TileConfig, TileMap},
+    core::{TileConfig, TileMap, Team, components::TileCoords, tile_to_world_coords},
     selection::SelectionCtx,
-    units::Unit,
+    units::bundles::UnitMarker,
+    interaction::AttackValidation,
     visual::{
         components::AttackOverlay,
-        resources::{AttackValidation, AttackOverlayState},
+        resources::AttackOverlayState,
     },
 };
 
 /// System that cleans up attack overlays when not in Attack state
 pub fn cleanup_attack_overlays(
-    mut overlay_query: Query<&mut Visibility, With<AttackOverlay>>,
-    mut attack_validation: ResMut<AttackValidation>,
+    mut commands: Commands,
+    overlay_query: Query<Entity, With<AttackOverlay>>,
 ) {
-    for mut visibility in overlay_query.iter_mut() {
-        *visibility = Visibility::Hidden;
-    }
-    // Clear the validation cache
-    attack_validation.clear();
-}
-
-/// System that updates AttackValidation when entering Attack mode
-/// This runs once per Attack mode entry and sets up valid attack positions
-pub fn update_attack_validation_on_enter(
-    selection_ctx: Res<SelectionCtx>,
-    tile_config: Res<TileConfig>,
-    tile_map: Res<TileMap>,
-    unit_query: Query<&Unit>,
-    mut attack_validation: ResMut<AttackValidation>,
-) {
-    
-    // Clear any existing validation
-    attack_validation.clear();
-    
-    // If a unit is selected, calculate its valid attacks
-    if let Some(unit_entity) = selection_ctx.selected_unit {
-        if let Ok(unit) = unit_query.get(unit_entity) {
-            
-            if unit.attack_count > 0 {
-                // Calculate valid attack positions
-                // For now, just mark that attack is possible
-                // TODO: Implement proper attack range calculation
-                let valid_positions = vec![unit.tile_pos];
-                
-                let valid_attacks_set: HashSet<IVec2> = valid_positions.into_iter().collect();
-                attack_validation.set_valid_attacks(valid_attacks_set.clone());
-            }
-        }
+    // Despawn all attack overlay entities
+    for entity in overlay_query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 
-/// System that updates attack overlays for selected unit in Attack action state
-/// This system only runs when: PlayerTurn + Attack + UnitSelected
-/// Note: AttackValidation is now updated separately in OnEnter system
+/// System that spawns attack overlays based on AttackValidation resource
+/// This system reads the valid attacks from AttackValidation and creates overlay entities
 pub fn attack_overlay_system(
     mut commands: Commands,
-    selection_ctx: Res<SelectionCtx>,
+    attack_validation: Res<AttackValidation>,
     tile_config: Res<TileConfig>,
-    tile_map: Res<TileMap>,
-    unit_query: Query<&Unit>,
-    mut overlay_query: Query<(Entity, &mut Visibility, &AttackOverlay)>,
-    mut overlay_state: Local<AttackOverlayState>,
+    existing_overlays: Query<Entity, With<AttackOverlay>>,
 ) {
-    if let Some(unit_entity) = selection_ctx.selected_unit {
-        if let Ok(unit) = unit_query.get(unit_entity) {
-            // Check if we need to update overlays (position or attack count changed)
-            let needs_update = overlay_state.last_unit_pos != Some(unit.tile_pos) ||
-                               overlay_state.last_attack_count != Some(unit.attack_count);
-            
-            
-            if needs_update {
-                // Clear existing overlays
-                for entity in overlay_state.current_overlays.drain(..) {
-                    if let Ok((entity, _, _)) = overlay_query.get(entity) {
-                        commands.entity(entity).despawn();
-                    }
-                }
-                
-                // Create new overlays if unit has attacks left
-                if unit.attack_count > 0 {
-                    // For now, just create empty overlay list
-                    // TODO: Implement proper overlay creation
-                    let new_overlays = Vec::new();
-                    let valid_positions = vec![unit.tile_pos];
-                    overlay_state.current_overlays = new_overlays;
-                    overlay_state.valid_attacks = valid_positions.into_iter().collect();
-                } else {
-                    overlay_state.valid_attacks.clear();
-                }
-                
-                // Update tracking state
-                overlay_state.last_unit_pos = Some(unit.tile_pos);
-                overlay_state.last_attack_count = Some(unit.attack_count);
-            }
-            
-            // Show all current overlays
-            for &entity in overlay_state.current_overlays.iter() {
-                if let Ok((_, mut visibility, _)) = overlay_query.get_mut(entity) {
-                    *visibility = Visibility::Visible;
-                }
-            }
-        }
+    // Clean up existing overlays first
+    for entity in existing_overlays.iter() {
+        commands.entity(entity).despawn();
+    }
+    
+    // Spawn new overlays for each valid attack position
+    for &pos in attack_validation.valid_attacks.iter() {
+        // Convert tile coordinates to world position using the correct function
+        let world_pos_2d = tile_to_world_coords(pos.x, pos.y, &tile_config);
+        let world_pos = Vec3::new(
+            world_pos_2d.x,
+            world_pos_2d.y,
+            1.0, // Above tile but below UI
+        );
+        
+        // Spawn attack overlay entity
+        commands.spawn((
+            Transform::from_translation(world_pos),
+            GlobalTransform::default(),
+            Sprite {
+                color: Color::srgba(1.0, 0.0, 0.0, 0.3), // Semi-transparent red
+                custom_size: Some(Vec2::splat(tile_config.tile_size * 0.9)),
+                ..default()
+            },
+            AttackOverlay { tile_pos: pos },
+            TileCoords { x: pos.x, y: pos.y },
+        ));
     }
 }

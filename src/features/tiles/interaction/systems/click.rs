@@ -6,7 +6,7 @@ use bevy::prelude::*;
 use crate::features::tiles::{
     core::{TileConfig, world_to_tile_coords, GridIndex, Team},
     selection::SelectionCtx,
-    visual::{MovementValidation, AttackValidation},
+    interaction::{MovementValidation, AttackValidation},
     interaction::events::{TileClicked, ClickTarget, ClickTargetEvent},
 };
 

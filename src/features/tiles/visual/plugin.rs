@@ -3,7 +3,7 @@
 //! Handles all tile rendering and visual overlays
 
 use bevy::prelude::*;
-use crate::states::AppState;
+use crate::states::{AppState, in_game::UnitCommandState};
 use super::systems::{
     spawn_hover_overlay, 
     ensure_hover_overlay,
@@ -16,6 +16,10 @@ use super::systems::{
     sync_unit_visual_transform,
     sync_unit_visual_on_unit_changed,
     run_if_changed_unit,
+    movement_overlay_system,
+    cleanup_movement_overlays,
+    attack_overlay_system,
+    cleanup_attack_overlays,
 };
 
 /// Plugin for tile visual systems
@@ -62,7 +66,25 @@ impl Plugin for VisualPlugin {
                     .run_if(run_if_changed_unit()),
                 sync_unit_visual_transform         // When TileConfig changes, sync all
                     .run_if(resource_changed::<crate::features::tiles::core::TileConfig>),
-            ).run_if(in_state(AppState::InGame)));
+            ).run_if(in_state(AppState::InGame)))
+            
+            // Movement overlay systems - show green tiles for valid moves
+            .add_systems(Update,
+                movement_overlay_system
+                    .run_if(in_state(AppState::InGame))
+                    .run_if(in_state(UnitCommandState::Move))
+                    .run_if(resource_changed::<crate::features::tiles::interaction::MovementValidation>)
+            )
+            .add_systems(OnExit(UnitCommandState::Move), cleanup_movement_overlays)
+            
+            // Attack overlay systems - show red tiles for valid attacks  
+            .add_systems(Update,
+                attack_overlay_system
+                    .run_if(in_state(AppState::InGame))
+                    .run_if(in_state(UnitCommandState::Attack))
+                    .run_if(resource_changed::<crate::features::tiles::interaction::AttackValidation>)
+            )
+            .add_systems(OnExit(UnitCommandState::Attack), cleanup_attack_overlays);
             
         // Note: This plugin ONLY reads resources, never modifies game logic
         // Game logic is handled by other plugins (interaction, selection, etc.)

@@ -4,7 +4,7 @@
 
 use bevy::prelude::*;
 use crate::{
-    features::tiles::{units::{Unit, Enemy}, TileConfig, TileMap, world_to_tile_coords, TileContent},
+    features::tiles::{TileConfig, TileMap, world_to_tile_coords, TileContent, Team, units::bundles::UnitMarker},
 };
 
 /// Marker component for the hover info UI container
@@ -52,8 +52,7 @@ pub fn update_hover_info(
     camera_q: Query<(&Camera, &GlobalTransform)>,
     tile_config: Res<TileConfig>,
     tile_map: Res<TileMap>,
-    unit_query: Query<&Unit>,
-    enemy_query: Query<&Enemy>,
+    _unit_query: Query<&Team, With<UnitMarker>>,
     mut text_query: Query<&mut Text, With<HoverInfoText>>,
 ) {
     let Ok(window) = windows.single() else { return; };
@@ -84,29 +83,13 @@ pub fn update_hover_info(
     match tile_map.get_content(tile_pos) {
         TileContent::Unit(entity) => {
             info_text.push_str("Contents: Ally Unit\n");
-            if let Ok(unit) = unit_query.get(entity) {
-                info_text.push_str(&format!(
-                    "Health: {}/{}\n\
-                     Attack Power: {}\n\
-                     Movement Range: {}/{}\n\
-                     Attack Count: {}/{}",
-                    unit.health, unit.max_health,
-                    unit.attack_power,
-                    unit.movement_range, unit.max_movement_range,
-                    unit.attack_count, unit.max_attack_count
-                ));
-            }
+            // TODO: Get unit info from proper components and display
+            info_text.push_str("Unit details not available yet");
         }
         TileContent::Enemy(entity) => {
             info_text.push_str("Contents: Enemy Unit\n");
-            if let Ok(enemy) = enemy_query.get(entity) {
-                info_text.push_str(&format!(
-                    "Health: {}/{}\n\
-                     Attack Power: {}",
-                    enemy.health, enemy.max_health,
-                    enemy.attack_power
-                ));
-            }
+            // TODO: Get enemy info from proper components and display
+            info_text.push_str("Enemy details not available yet");
         }
         TileContent::Empty => {
             info_text.push_str("Contents: Empty");

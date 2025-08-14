@@ -4,8 +4,8 @@
 
 use bevy::prelude::*;
 use crate::features::tiles::{
-    core::{TileConfig, tile_to_world_coords, UnitSpawned, Team},
-    units::components::Unit,
+    core::{TileConfig, tile_to_world_coords, UnitSpawned, Team, components::TileCoords},
+    units::bundles::UnitMarker,
     visual::{components::UnitVisual, z},
 };
 
@@ -49,10 +49,10 @@ pub fn spawn_unit_visual_on_spawned(
 /// Sync all unit visual positions when TileConfig changes
 pub fn sync_unit_visual_transform(
     cfg: Res<TileConfig>,
-    mut unit_query: Query<(&Unit, &mut Transform)>,
+    mut unit_query: Query<(&TileCoords, &mut Transform), With<UnitMarker>>,
 ) {
-    for (unit, mut transform) in &mut unit_query {
-        let wp = tile_to_world_coords(unit.tile_pos.x, unit.tile_pos.y, &cfg);
+    for (tile_coords, mut transform) in &mut unit_query {
+        let wp = tile_to_world_coords(tile_coords.x, tile_coords.y, &cfg);
         
         // Update parent Transform - child will follow automatically
         transform.translation.x = wp.x;
@@ -64,10 +64,10 @@ pub fn sync_unit_visual_transform(
 /// Sync unit visual positions when only Unit component changes (more efficient)
 pub fn sync_unit_visual_on_unit_changed(
     cfg: Res<TileConfig>,
-    mut changed_units: Query<(&Unit, &mut Transform), Changed<Unit>>,
+    mut changed_units: Query<(&TileCoords, &mut Transform), (With<UnitMarker>, Changed<TileCoords>)>,
 ) {
-    for (unit, mut transform) in &mut changed_units {
-        let wp = tile_to_world_coords(unit.tile_pos.x, unit.tile_pos.y, &cfg);
+    for (tile_coords, mut transform) in &mut changed_units {
+        let wp = tile_to_world_coords(tile_coords.x, tile_coords.y, &cfg);
         
         // Update parent Transform - child will follow automatically
         transform.translation.x = wp.x;
@@ -76,9 +76,9 @@ pub fn sync_unit_visual_on_unit_changed(
     }
 }
 
-/// Run condition: check if any Unit component changed
-pub fn run_if_changed_unit() -> impl FnMut(Query<&Unit, Changed<Unit>>) -> bool {
-    |changed_units: Query<&Unit, Changed<Unit>>| !changed_units.is_empty()
+/// Run condition: check if any TileCoords component changed
+pub fn run_if_changed_unit() -> impl FnMut(Query<&TileCoords, (With<UnitMarker>, Changed<TileCoords>)>) -> bool {
+    |changed_units: Query<&TileCoords, (With<UnitMarker>, Changed<TileCoords>)>| !changed_units.is_empty()
 }
 
 

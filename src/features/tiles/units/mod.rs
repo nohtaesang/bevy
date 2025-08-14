@@ -10,8 +10,12 @@ pub mod components;
 pub mod resources;
 pub mod systems;
 pub mod plugin;
+pub mod bundles;
+pub mod presets;
 
 pub use components::*;
 pub use resources::*;
 pub use systems::*;
 pub use plugin::UnitsPlugin;
+pub use bundles::*;
+pub use presets::*;

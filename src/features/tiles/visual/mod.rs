@@ -20,7 +20,6 @@ pub use components::{
 
 // Re-export resources
 pub use resources::{
-    MovementValidation, AttackValidation,
     MovementOverlayState, AttackOverlayState,
 };
 
@@ -36,11 +35,9 @@ pub use systems::{
     ensure_selection_overlay,
     // Movement systems
     cleanup_movement_overlays,
-    update_movement_validation_on_enter,
     movement_overlay_system,
     // Attack systems
     cleanup_attack_overlays,
-    update_attack_validation_on_enter,
     attack_overlay_system,
     // Tile rendering systems
     rebuild_visual_tiles_on_map_event,

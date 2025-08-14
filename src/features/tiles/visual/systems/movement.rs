@@ -3,69 +3,62 @@
 //! This module handles movement range visualization
 
 use bevy::prelude::*;
-use std::collections::HashSet;
 use crate::features::tiles::{
-    core::{TileConfig, TileMap},
+    core::{TileConfig, TileMap, Team, components::TileCoords, tile_to_world_coords},
     selection::SelectionCtx,
-    units::Unit,
+    units::bundles::UnitMarker,
+    interaction::MovementValidation,
     visual::{
         components::MovementOverlay,
-        resources::{MovementValidation, MovementOverlayState},
+        resources::MovementOverlayState,
     },
 };
 
 /// System that cleans up movement overlays when not in Move state
 pub fn cleanup_movement_overlays(
-    mut overlay_query: Query<&mut Visibility, With<MovementOverlay>>,
-    mut movement_validation: ResMut<MovementValidation>,
+    mut commands: Commands,
+    overlay_query: Query<Entity, With<MovementOverlay>>,
 ) {
-    for mut visibility in overlay_query.iter_mut() {
-        *visibility = Visibility::Hidden;
-    }
-    // Clear the validation cache
-    movement_validation.clear();
-}
-
-/// System that updates MovementValidation when entering Move mode
-/// This runs once per Move mode entry and sets up valid movement positions
-pub fn update_movement_validation_on_enter(
-    selection_ctx: Res<SelectionCtx>,
-    _tile_config: Res<TileConfig>,
-    _tile_map: Res<TileMap>,
-    unit_query: Query<&Unit>,
-    mut movement_validation: ResMut<MovementValidation>,
-) {
-    
-    // Clear any existing validation
-    movement_validation.clear();
-    
-    // If a unit is selected, validate it has movement
-    if let Some(unit_entity) = selection_ctx.selected_unit {
-        if let Ok(unit) = unit_query.get(unit_entity) {
-            if unit.movement_range > 0 {
-                // For now, just mark that movement is possible
-                // TODO: Implement proper pathfinding validation
-                let mut valid_moves = std::collections::HashSet::new();
-                valid_moves.insert(unit.tile_pos);
-                movement_validation.set_valid_moves(valid_moves);
-            }
-        }
+    // Despawn all movement overlay entities
+    for entity in overlay_query.iter() {
+        commands.entity(entity).despawn();
     }
 }
 
-/// System that updates movement overlays for selected unit in Move action state
-/// This system only runs when: PlayerTurn + Move + UnitSelected
-/// Note: MovementValidation is now updated separately in OnEnter system
+/// System that spawns movement overlays based on MovementValidation resource
+/// This system reads the valid moves from MovementValidation and creates overlay entities
 pub fn movement_overlay_system(
-    _commands: Commands,
-    _selection_ctx: Res<SelectionCtx>,
-    _tile_config: Res<TileConfig>,
-    _tile_map: Res<TileMap>,
-    _unit_query: Query<&Unit>,
-    mut overlay_query: Query<&mut Visibility, With<MovementOverlay>>,
+    mut commands: Commands,
+    movement_validation: Res<MovementValidation>,
+    tile_config: Res<TileConfig>,
+    existing_overlays: Query<Entity, With<MovementOverlay>>,
 ) {
-    // Simple system that just shows movement overlays
-    for mut visibility in overlay_query.iter_mut() {
-        *visibility = Visibility::Visible;
+    // Clean up existing overlays first
+    for entity in existing_overlays.iter() {
+        commands.entity(entity).despawn();
+    }
+    
+    // Spawn new overlays for each valid move position
+    for &pos in movement_validation.valid_moves.iter() {
+        // Convert tile coordinates to world position using the correct function
+        let world_pos_2d = tile_to_world_coords(pos.x, pos.y, &tile_config);
+        let world_pos = Vec3::new(
+            world_pos_2d.x,
+            world_pos_2d.y,
+            1.0, // Above tile but below UI
+        );
+        
+        // Spawn movement overlay entity
+        commands.spawn((
+            Transform::from_translation(world_pos),
+            GlobalTransform::default(),
+            Sprite {
+                color: Color::srgba(0.0, 1.0, 0.0, 0.3), // Semi-transparent green
+                custom_size: Some(Vec2::splat(tile_config.tile_size * 0.9)),
+                ..default()
+            },
+            MovementOverlay { tile_pos: pos },
+            TileCoords { x: pos.x, y: pos.y },
+        ));
     }
 }

@@ -23,7 +23,8 @@
       "Bash(move states_old.rs legacy )",
       "Bash(cp:*)",
       "Bash(rg:*)",
-      "Bash(rd:*)"
+      "Bash(rd:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

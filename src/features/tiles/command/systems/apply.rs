@@ -2,9 +2,9 @@
 
 use bevy::{prelude::*, ecs::system::ParamSet};
 use crate::features::tiles::{
-    core::{TileConfig, TileMap, TileMoved, Team},
-    visual::AttackValidation,
-    units::{Unit, Enemy},
+    core::{TileConfig, TileMap, TileMoved, Team, components::TileCoords},
+    interaction::AttackValidation,
+    units::bundles::UnitMarker,
 };
 use super::{
     super::{
@@ -30,10 +30,9 @@ pub fn process_command_queue(
     mut path_cache: ResMut<PathCache>,
     attack_validation: Res<AttackValidation>,
     mut unit_queries: ParamSet<(
-        Query<(&mut Unit, &mut Transform, &Team)>,
-        Query<&mut Unit>,
+        Query<(&mut TileCoords, &mut Transform, &Team), With<UnitMarker>>,
+        Query<&Team, With<UnitMarker>>,
     )>,
-    mut enemy_query: Query<&mut Enemy>,
     mut command_events: EventWriter<CommandCompletedEvent>,
     mut tile_moved: EventWriter<TileMoved>,
     time: Res<Time>,
@@ -64,7 +63,6 @@ pub fn process_command_queue(
             &mut path_cache,
             &attack_validation,
             &mut unit_queries,
-            &mut enemy_query,
             &mut command_events,
             &mut tile_moved,
         );
@@ -124,10 +122,9 @@ fn execute_command(
     path_cache: &mut ResMut<PathCache>,
     attack_validation: &AttackValidation,
     unit_queries: &mut ParamSet<(
-        Query<(&mut Unit, &mut Transform, &Team)>,
-        Query<&mut Unit>,
+        Query<(&mut TileCoords, &mut Transform, &Team), With<UnitMarker>>,
+        Query<&Team, With<UnitMarker>>,
     )>,
-    enemy_query: &mut Query<&mut Enemy>,
     command_events: &mut EventWriter<CommandCompletedEvent>,
     tile_moved: &mut EventWriter<TileMoved>,
 ) -> CommandResult {
@@ -153,7 +150,6 @@ fn execute_command(
                 tile_map,
                 attack_validation,
                 &mut unit_queries.p1(),
-                enemy_query,
                 command_events,
             )
         }

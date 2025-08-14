@@ -3,7 +3,7 @@
 use bevy::prelude::*;
 use crate::{
     states::in_game::{TurnState, SelectionState, UnitCommandState},
-    features::tiles::{units::{Unit, Enemy}, SelectionCtx},
+    features::tiles::{SelectionCtx, Team, units::bundles::UnitMarker},
 };
 
 #[derive(Component)]
@@ -57,8 +57,7 @@ pub fn update_state_display(
     selection_state: Option<Res<State<SelectionState>>>,
     action_state: Option<Res<State<UnitCommandState>>>,
     selection_ctx: Option<Res<SelectionCtx>>,
-    unit_query: Query<&Unit>,
-    enemy_query: Query<&Enemy>,
+    _unit_query: Query<&Team, With<UnitMarker>>,
 ) {
     for mut text in text_query.iter_mut() {
         let mut display_text = String::new();
@@ -90,19 +89,11 @@ pub fn update_state_display(
             
             // Selected entity details
             if let Some(entity) = selection_ctx.selected_unit {
-                if let Ok(unit) = unit_query.get(entity) {
-                    display_text.push_str(&format!("\nUnit Selected:\n"));
-                    display_text.push_str(&format!("  HP: {}/{}\n", unit.health, unit.max_health));
-                    display_text.push_str(&format!("  ATK: {}\n", unit.attack_power));
-                    display_text.push_str(&format!("  Move: {}\n", unit.movement_range));
-                    display_text.push_str(&format!("  Range: {}-{}\n", unit.attack_range.min, unit.attack_range.max));
-                }
+                // TODO: Get unit info from proper components and display
+                display_text.push_str("\nUnit Selected (info not available yet)\n");
             } else if let Some(entity) = selection_ctx.selected_enemy {
-                if let Ok(enemy) = enemy_query.get(entity) {
-                    display_text.push_str(&format!("\nEnemy Selected:\n"));
-                    display_text.push_str(&format!("  HP: {}/{}\n", enemy.health, enemy.max_health));
-                    display_text.push_str(&format!("  ATK: {}\n", enemy.attack_power));
-                }
+                // TODO: Get enemy info from proper components and display
+                display_text.push_str("\nEnemy Selected (info not available yet)\n");
             }
         } else {
             display_text.push_str("Tile: N/A\n");

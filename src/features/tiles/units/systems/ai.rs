@@ -4,20 +4,20 @@
 
 use bevy::prelude::*;
 use crate::features::tiles::{
-    core::{TileMap, TileMoved, Team, MoveOutcome},
-    units::components::Enemy,
+    core::{TileMap, TileMoved, Team, MoveOutcome, components::TileCoords},
+    units::bundles::UnitMarker,
 };
 
 /// AI movement system for enemy units
 pub fn move_enemies_left(
-    mut enemy_query: Query<(Entity, &mut Enemy, &Team), With<Enemy>>,
+    mut enemy_query: Query<(Entity, &mut TileCoords, &Team), (With<UnitMarker>, With<Team>)>,
     mut tile_map: ResMut<TileMap>,
     mut tile_moved: EventWriter<TileMoved>,
 ) {
     let mut enemies_to_move = Vec::new();
     
     for (enemy_entity, enemy, team) in enemy_query.iter() {
-        let current_pos = enemy.tile_pos;
+        let current_pos = IVec2::new(enemy.x, enemy.y);
         enemies_to_move.push((enemy_entity, current_pos, *team));
     }
 
@@ -29,9 +29,10 @@ pub fn move_enemies_left(
             MoveOutcome::Moved { entity: moved_entity } => {
                 // TileMap update succeeded - now update other systems
                 
-                // Update Enemy component (Transform will be synced automatically)
-                if let Ok((_, mut enemy, _)) = enemy_query.get_mut(enemy_entity) {
-                    enemy.tile_pos = new_pos;
+                // Update TileCoords component (Transform will be synced automatically)
+                if let Ok((_, mut tile_coords, _)) = enemy_query.get_mut(enemy_entity) {
+                    tile_coords.x = new_pos.x;
+                    tile_coords.y = new_pos.y;
                 }
                 
                 // Emit event only after TileMap update succeeded (use actual team from component)

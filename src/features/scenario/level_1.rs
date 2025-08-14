@@ -8,7 +8,7 @@ use crate::{
     states::AppState,
     features::tiles::{
         core::{TileConfig, TileMap, tile_to_world_coords, UnitSpawned, Team, GridIndex, MapRebuilt},
-        units::components::{Unit, AttackDirection, AttackType, AttackRange},
+        units::presets::make_basic_ally_bundle,
         visual::z,
     },
 };
@@ -63,17 +63,10 @@ fn spawn_level_1_player(
     // Center position in 11x11 grid (0-indexed, so center is at 5,5)
     let center_pos = IVec2::new(5, 5);
     
-    // Spawn player unit with balanced stats and team component (logic only)
-    let player_entity = commands.spawn((
-        Unit::new(
-            center_pos,
-            AttackDirection::EightWay, // Can attack in all 8 directions
-            AttackType::Direct,        // Direct combat
-            AttackRange::new(1, 2),    // Attack range 1-2 tiles
-        ),
-        Team::Player,               // Team component for entity
-        Name::new("Player"),
-    )).id();
+    // Spawn player unit using ally preset
+    let player_entity = commands.spawn(
+        make_basic_ally_bundle(center_pos, Team::Player, &tile_config)
+    ).id();
     
     // Register unit in tile map with safety check
     if !tile_map.place_unit(center_pos, player_entity) {

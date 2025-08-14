@@ -5,11 +5,11 @@ use crate::{
     states::in_game::{SelectionState, UnitCommandState},
     features::{
         tiles::{
-            core::{TileConfig, TileMap, TileContent, world_to_tile_coords},
+            core::{TileConfig, TileMap, TileContent, world_to_tile_coords, Team},
             selection::{SelectionCtx, select_tile, select_unit, select_enemy, clear_selection},
-            visual::AttackValidation,
+            interaction::AttackValidation,
+            units::bundles::UnitMarker,
         },
-        tiles::units::{Unit, Enemy},
     },
 };
 use super::super::{
@@ -124,8 +124,7 @@ pub fn execute_attack_command(
     target_pos: IVec2,
     tile_map: &TileMap,
     attack_validation: &AttackValidation,
-    unit_query: &mut Query<&mut Unit>,
-    enemy_query: &mut Query<&mut Enemy>,
+    unit_query: &mut Query<&Team, With<UnitMarker>>,
     command_events: &mut EventWriter<CommandCompletedEvent>,
 ) -> CommandResult {
     // Validate attack position
@@ -145,53 +144,25 @@ pub fn execute_attack_command(
         }
     };
 
-    // Check if unit has attacks left
-    if !attacker.can_attack() {
-        return CommandResult::Failed { 
-            reason: "No attacks remaining".to_string() 
-        };
-    }
-
-    // Get the target enemy entity from the tile map
-    let target_entity = match tile_map.get_content(target_pos) {
-        TileContent::Enemy(entity) => entity,
+    // TODO: Check if unit has attacks left (requires CurrentStats component)
+    
+    // Get the target entity from the tile map
+    let _target_entity = match tile_map.get_content(target_pos) {
+        TileContent::Unit(entity) | TileContent::Enemy(entity) => entity,
         _ => {
             return CommandResult::Failed { 
-                reason: "No enemy at target position".to_string() 
+                reason: "No target at position".to_string() 
             };
         }
     };
 
-    // Get the target enemy
-    let mut target_enemy = match enemy_query.get_mut(target_entity) {
-        Ok(enemy) => enemy,
-        Err(_) => {
-            return CommandResult::Failed { 
-                reason: "Target enemy not found".to_string() 
-            };
-        }
-    };
-
-    // Consume attack count
-    attacker.use_attack();
+    // TODO: Implement proper attack logic with stats system
+    let _damage = 10; // Placeholder damage
     
-    // Deal damage
-    let damage = attacker.attack_power;
-    target_enemy.health -= damage;
+    // TODO: Apply damage to target's CurrentStats health
+    // TODO: Check if target is destroyed and remove from map
     
-    // Ensure health doesn't go below 0
-    if target_enemy.health < 0 {
-        target_enemy.health = 0;
-    }
-
-    info!(
-        "Unit at {:?} attacked enemy at {:?} for {} damage. Enemy health: {}/{}",
-        from,
-        target_pos,
-        damage,
-        target_enemy.health,
-        target_enemy.max_health
-    );
+    info!("Unit at {:?} attacked target at {:?} for {} damage", from, target_pos, _damage);
 
     CommandResult::Success
 }

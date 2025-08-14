@@ -6,8 +6,8 @@ use bevy::prelude::*;
 use crate::{
     states::in_game::{SelectionState, UnitCommandState},
     features::tiles::{
-        core::{TileConfig, TileMap, TileContent, world_to_tile_coords},
-        units::{Unit, Enemy},
+        core::{TileConfig, TileMap, TileContent, world_to_tile_coords, Team},
+        units::bundles::UnitMarker,
         selection::{SelectionCtx, systems::{state::*, effects::clear_selection}},
     },
 };
@@ -22,8 +22,7 @@ pub fn handle_idle_state_click(
     mut next_selection_state: ResMut<NextState<SelectionState>>,
     mut next_action_state: ResMut<NextState<UnitCommandState>>,
     mut selection_ctx: ResMut<SelectionCtx>,
-    unit_query: Query<(Entity, &Unit)>,
-    enemy_query: Query<(Entity, &Enemy)>,
+    unit_query: Query<(Entity, &Team), With<UnitMarker>>,
 ) {
     if !mouse_input.just_pressed(MouseButton::Left) {
         return;

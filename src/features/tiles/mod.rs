@@ -11,7 +11,7 @@ pub mod units;
 pub mod plugin;
 
 // Re-export core components
-pub use core::{Tile, TileConfig, TileMap, TileContent};
+pub use core::{TileConfig, TileMap, TileContent, Team};
 pub use core::{tile_to_world_coords, world_to_tile_coords};
 
 // Re-export selection resources
@@ -43,14 +43,14 @@ pub use command::{
     CommandResult,
 };
 
-// Re-export visual systems
-pub use visual::{
+// Re-export range resources
+pub use interaction::{
     MovementValidation,
     AttackValidation,
 };
 
 // Re-export unit components
-pub use units::{Unit, Enemy, AttackDirection, AttackType, AttackRange, UnitsPlugin};
+pub use units::{AttackDirection, AttackType, UnitsPlugin};
 
 // Re-export main plugin
 pub use plugin::TilesPlugin;
