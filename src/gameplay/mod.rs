@@ -10,5 +10,6 @@ pub mod propagation;
 pub mod onhit;
 pub mod elements;
 pub mod turns;
+pub mod tiles;
 
 pub use prelude::*;
