@@ -24,7 +24,8 @@
       "Bash(cp:*)",
       "Bash(rg:*)",
       "Bash(rd:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(touch:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"
