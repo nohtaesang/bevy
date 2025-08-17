@@ -1,6 +1,7 @@
 mod app;
 mod gameplay;
 mod view;
+mod input;     
 
 use bevy::prelude::*;
 use crate::app::plugin::AppStatesPlugin; // 너가 만든 plugin.rs
@@ -8,6 +9,7 @@ use crate::gameplay::tiles::prelude::TilesPlugin;
 use crate::app::state::AppState;
 use crate::gameplay::tiles::prelude::{TileConfig, BaseTileMap, TerrainKind, GridIndex};
 use crate::view::plugin::ViewPlugin;
+use crate::input::InputPlugin;
 
 fn main() {
     App::new()
@@ -15,6 +17,7 @@ fn main() {
         .add_plugins(AppStatesPlugin)  // 네가 만든 AppStatesPlugin
         .add_plugins(TilesPlugin)
         .add_plugins(ViewPlugin)
+        .add_plugins(InputPlugin)
         .add_systems(OnEnter(AppState::Battle), setup_level_10x10)
         .run();
 }   
