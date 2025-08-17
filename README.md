@@ -167,3 +167,18 @@ debug & tooling
 goal: fast diagnosis.
 
 ship: debug draw for grids/paths/LOS, stat overlay, event inspector, lag spike recorder.
+
+
+
+
+
+
+다음 단계(선택)
+
+SelectionCtx에 reachable/pending_path 필드 추가 후, 별도 previews.rs에서 Pathfinder/Index를 읽어 갱신 → 뷰 오버레이로 즉시 피드백.
+
+clicks.rs에서 실제 유닛/적 선택 로직 추가(그리드 인덱스 참조).
+
+commands 모듈을 만들어 CommandRequested를 검증/커밋하고, 이동/공격/사망/애니메이션 이벤트를 발행.
+
+필요하면 바로 이어서 previews(이동범위/경로 미리보기) 스캐폴딩까지 만들어줄게.

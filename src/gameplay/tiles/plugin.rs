@@ -19,7 +19,6 @@ impl Plugin for TilesPlugin {
     fn build(&self, app: &mut App) {
         
         app
-  
             // 이벤트 등록
             .add_event::<GridPlace>()
             .add_event::<GridRemove>()

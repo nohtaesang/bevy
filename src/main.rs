@@ -10,6 +10,7 @@ use crate::app::state::AppState;
 use crate::gameplay::tiles::prelude::{TileConfig, BaseTileMap, TerrainKind, GridIndex};
 use crate::view::plugin::ViewPlugin;
 use crate::input::InputPlugin;
+use crate::gameplay::interaction::InteractionPlugin;
 
 fn main() {
     App::new()
@@ -18,6 +19,7 @@ fn main() {
         .add_plugins(TilesPlugin)
         .add_plugins(ViewPlugin)
         .add_plugins(InputPlugin)
+        .add_plugins(InteractionPlugin)
         .add_systems(OnEnter(AppState::Battle), setup_level_10x10)
         .run();
 }   
