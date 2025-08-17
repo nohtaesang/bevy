@@ -1,25 +1,22 @@
+mod app;
+mod gameplay;
+mod view;
+mod input;
+
 use bevy::prelude::*;
-
-mod states;
-mod features;
-mod ui;
-mod temp;
-
-use states::AppState;
-use states::in_game::InGamePlugin;
-
+use crate::app::plugin::AppStatesPlugin;
+use crate::view::plugin::ViewPlugin;
+use crate::input::InputPlugin;
+use crate::gameplay::plugin::GameplayPlugin;
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .init_state::<AppState>()
-        .add_systems(Startup, setup)
-        .add_plugins(InGamePlugin)
+        .add_plugins(AppStatesPlugin)
+        // 화면/입력은 상위에서
+        .add_plugins(ViewPlugin)
+        .add_plugins(InputPlugin)
+        // 게임플레이 한 방에 묶기
+        .add_plugins(GameplayPlugin)
         .run();
 }
-
-fn setup(mut commands: Commands) {
-    commands.spawn(Camera2d);
-    
-}
-
