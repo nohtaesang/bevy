@@ -4,6 +4,7 @@ use super::camera::CameraPlugin;
 use super::tiles::TilesViewPlugin;
 use super::units::UnitViewPlugin;
 use super::interaction::TileOverlayViewPlugin;
+use super::ui::UiViewPlugin;
 
 /// 뷰(렌더/UI/이펙트 등)를 묶는 상위 플러그인.
 /// - 카메라 전용 플러그인 등록
@@ -17,7 +18,8 @@ impl Plugin for ViewPlugin {
             .add_plugins(CameraPlugin)
             .add_plugins(TilesViewPlugin)
             .add_plugins(UnitViewPlugin)
-            .add_plugins(TileOverlayViewPlugin);
+            .add_plugins(TileOverlayViewPlugin)
+            .add_plugins(UiViewPlugin);
     }
 }
 
