@@ -1,0 +1,45 @@
+(
+    name: "Enemy",
+    team: 1,                   // enemy team
+
+    max_hp: 10,
+    max_shield: 1,
+
+    move_per_turn: 4,
+    actions_per_turn: 1,
+
+    attack: (
+        damage: 3,
+        range: 3,
+        crit_chance: 0.03,
+        crit_mult: 1.5,
+        dirs: Four,            // Four | Eight
+    ),
+
+    traits_: (
+        can_move_after_attack: false,
+        auto_reload: false,
+        can_phase: false,
+    ),
+
+    firing: (
+        burst: 0,
+        multishot_rays: 0,
+        fan_rays: 0,
+        lobbed: false,
+    ),
+
+    propagation: None,
+
+    on_hit: (
+        explode: None,
+        knockback: None,
+        gravity: None,
+    ),
+
+    imbue: (
+        element: None,
+        cooldown_max: 0,
+        cooldown: 0,
+    ),
+)

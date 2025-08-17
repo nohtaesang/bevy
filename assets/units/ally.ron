@@ -1,5 +1,5 @@
 (
-    name: "Ally Warrior Lv1",
+    name: "Ally",
     team: 0,                   // 숫자(u8)
 
     max_hp: 12,
