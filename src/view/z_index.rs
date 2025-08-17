@@ -16,6 +16,8 @@ pub const Y_SORT_STEP: f32 = 0.001;
 pub mod layer {
     pub const BACKGROUND: f32 = -100.0;
     pub const TILES: f32      = -10.0;
+    pub const HOVER: f32      = -5.0;
+    pub const SELECT: f32     = -4.0;
     pub const UNITS: f32      =   0.0;
     pub const EFFECTS: f32    =  10.0;
     pub const UI_WORLD: f32   = 100.0; // 월드 공간 UI(범위 표시 등)
