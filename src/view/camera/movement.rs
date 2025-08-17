@@ -1,46 +1,48 @@
 use bevy::prelude::*;
+use bevy::input::keyboard::KeyCode;
+use bevy::render::camera::Projection; // ⬅️ OrthographicProjection은 Projection 안에 들어있음
 
-/// Camera movement system: WASD keys + middle mouse panning
+// 카메라 스폰 시 이 마커를 붙여주세요.
+// 예) commands.spawn((Camera2dBundle::default(), MainCamera));
+#[derive(Component)]
+pub struct MainCamera;
+
+/// WASD 이동:
+/// - 대각선 속도 보정 (normalize)
+/// - 줌 비율(Projection::Orthographic.scale)에 비례한 이동 속도 보정
+/// - 카메라 회전 고려(월드 기준 자연스러움)
 pub fn camera_movement(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    mouse_input: Res<ButtonInput<MouseButton>>,
-    mut mouse_motion: EventReader<bevy::input::mouse::MouseMotion>,
-    mut camera_query: Query<&mut Transform, With<Camera2d>>,
+    keys: Res<ButtonInput<KeyCode>>,
     time: Res<Time>,
+    mut q: Query<(&mut Transform, &Projection), With<MainCamera>>,
 ) {
-    let Ok(mut camera_transform) = camera_query.single_mut() else {
-        return;
+    let Ok((mut tf, proj)) = q.single_mut() else { return; };
+    // 입력 벡터 수집
+    let mut v = Vec2::ZERO;
+    if keys.pressed(KeyCode::KeyW) { v.y += 1.0; }
+    if keys.pressed(KeyCode::KeyS) { v.y -= 1.0; }
+    if keys.pressed(KeyCode::KeyA) { v.x -= 1.0; }
+    if keys.pressed(KeyCode::KeyD) { v.x += 1.0; }
+    if v == Vec2::ZERO { return; }
+
+    // 기본 속도(월드 유닛/초). 나중에 리소스로 빼도 좋음.
+    const BASE_SPEED: f32 = 600.0;
+
+    // 현재 카메라가 Orthographic일 때만 scale 사용 (아니면 1.0)
+    let zoom_scale = match proj {
+        Projection::Orthographic(o) => o.scale,
+        _ => 1.0,
     };
 
+    // 줌 보정: 확대(큰 scale)일수록 더 빨리 이동
+    let speed = BASE_SPEED * zoom_scale;
+
     let dt = time.delta_secs();
-    let move_speed = 300.0;
+    let move_vec_world = v.normalize() * speed * dt;
 
-    // WASD movement
-    let mut movement = Vec3::ZERO;
-    if keyboard_input.pressed(KeyCode::KeyW) {
-        movement.y += move_speed * dt;
-    }
-    if keyboard_input.pressed(KeyCode::KeyS) {
-        movement.y -= move_speed * dt;
-    }
-    if keyboard_input.pressed(KeyCode::KeyA) {
-        movement.x -= move_speed * dt;
-    }
-    if keyboard_input.pressed(KeyCode::KeyD) {
-        movement.x += move_speed * dt;
-    }
-
-    // Apply movement relative to camera rotation
-    let rotated_movement = camera_transform.rotation * movement;
-    camera_transform.translation += rotated_movement;
-
-    // Middle mouse button panning
-    if mouse_input.pressed(MouseButton::Middle) {
-        for motion in mouse_motion.read() {
-            let pan_speed = 2.0;
-            let delta = Vec3::new(-motion.delta.x * pan_speed, motion.delta.y * pan_speed, 0.0);
-            let rotated_delta = camera_transform.rotation * delta;
-            camera_transform.translation += rotated_delta;
-        }
-    }
+    // 회전 고려 이동
+    let delta = tf.rotation * move_vec_world.extend(0.0);
+    let z = tf.translation.z; // z 고정
+    tf.translation += delta;
+    tf.translation.z = z;
 }
