@@ -1,22 +1,32 @@
-mod app;
-mod gameplay;
-mod view;
-mod input;
-
 use bevy::prelude::*;
-use crate::app::plugin::AppStatesPlugin;
-use crate::view::plugin::ViewPlugin;
-use crate::input::InputPlugin;
-use crate::gameplay::plugin::GameplayPlugin;
+use bevy_game::app::plugin::AppPlugins;
+use bevy_game::app::state::ModeState;
+use bevy_game::domain::map::components::Map;
+use bevy_game::domain::map::plugin::MapDomainPlugin;
+use bevy_game::infra::view_core::camera::plugin::CameraPlugin;
+use bevy_game::modes::battle::features::map_view::plugin::MapViewPlugin;
 
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins)
-        .add_plugins(AppStatesPlugin)
-        // 화면/입력은 상위에서
-        .add_plugins(ViewPlugin)
-        .add_plugins(InputPlugin)
-        // 게임플레이 한 방에 묶기
-        .add_plugins(GameplayPlugin)
+        .add_plugins((DefaultPlugins, AppPlugins)) // ★ 여기서 Phase 세트 구성
+        .init_state::<ModeState>()
+        .insert_state(ModeState::Battle)
+        .add_plugins((MapDomainPlugin, CameraPlugin, MapViewPlugin))
+        .add_systems(Update, log_map_once)
         .run();
+}
+
+fn log_map_once(map: Option<Res<Map>>, mut done: Local<bool>) {
+    if *done {
+        return;
+    }
+    if let Some(map) = map {
+        info!(
+            "Map ready: {}x{} (tiles={})",
+            map.size.w,
+            map.size.h,
+            map.tiles.len()
+        );
+        *done = true;
+    }
 }

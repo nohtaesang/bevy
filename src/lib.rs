@@ -1,5 +1,4 @@
-// src/lib.rs
 pub mod app;
-pub mod gameplay;
-pub mod view;
-pub mod input;
+pub mod domain;
+pub mod infra;
+pub mod modes;

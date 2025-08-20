@@ -1,3 +1,5 @@
-pub mod state;
 pub mod plugin;
-pub mod systems;
+pub mod schedule;
+pub mod state;
+
+pub use schedule::Phase;
