@@ -1,184 +1,184 @@
-input + cursor → tile hit-test
+src/
+  app/
+    state.rs            // AppState, ModeState::Battle/Management
+    schedule.rs         // Phase: Input→Intent→Apply→Publish→ViewSync
+    plugins.rs
+
+  domain/               // ★ SSOT: 규칙/수식/인덱스/불변식 (UI 無)
+    units/
+      components.rs     // Unit, SquadId, Level, Xp, PerkSlots(★ 유닛에 붙는다)
+      stats.rs          // Damage, Range, Move/AP, Crit 등 기본 스탯 컴포넌트
+    perks/
+      components.rs     // PerkId, PerkSlots 레이아웃(슬롯/배타/스택 구조)
+      rules.rs          // 슬롯 규칙: 전파=3중1, OnHit=다중, Element=1, Traits/Pattern 플래그
+      registry.rs       // 데이터 드리븐 정의(레벨별 수치, 설명 등)
+      events.rs         // PerkAssignedApplied(확정 결과), PerkRemovedApplied 등
+    combat/
+      components.rs     // TeamId, AttackTag 등 코어 전투용 보조 컴포넌트
+      attack.rs         // ① 기본 피해/치명타 공식
+      statuses.rs       // ② Element(화염/빙결/전기/독), 쿨다운/해제
+      projectile/
+        onhit.rs        // ③ OnHit: Explode/Knockback/Gravity (정책: FinalOnly/EveryHit)
+        propagation.rs  // ④ Propagation: Pierce/Ricochet/Chain + OriginPolicy
+      pipeline.rs       // 처리 순서 고정: ①→②→③→④ (반복), attacker의 PerkSlots 사용
+      events.rs         // DamageApplied, ElementApplied, OnHitApplied, Propagated …
+    enemies/
+      archetypes.rs     // Rush/Shielded/Exploder/Regenerator/Necromancer …
+      traits.rs         // 저항/넉백불가/보스 태그
+      resistances.rs    // 속성 내성/약점 테이블
+    wave/
+      scaler.rs         // 웨이브 난이도 곡선(HP/속도/스폰수)
+      budget.rs         // 대군 스폰 포인트/조합 산출
+      schedule.rs       // WaveSpec/BossWaveSpec, 시드
+      events.rs         // WaveStarted/WaveEnded, EnemySpawnBudgeted
+    map/
+      components.rs     // GridPos, TerrainKind
+      grid_index.rs     // 대량 점유/통행 인덱스(수백~수천 적 대응)
+      flow_field.rs     // 대군 이동 최적화(옵션)
+
+  infra/
+    input/{keyboard.rs, mouse.rs}
+    view_core/{theme.rs, z_index.rs, fonts.rs}
+    profiling/{event_tap.rs, frame_stats.rs}
+
+  modes/
+    battle/
+      plugin.rs         // run_if(in_state(Battle)); 기능 플러그인 등록
+      features/
+        squad_roster/   // ★ 유닛(1~6) 선택/전환 UI
+          plugin.rs
+          view.rs
+          events.rs     // ActiveUnitChanged 등 (선택된 대상)
+        perk_choice/    // ★ 웨이브 보상: “어느 유닛에 어떤 퍼크를 줄지” 선택
+          plugin.rs
+          coordinator.rs // WaveCleared → roll → (unit 선택 + perk 선택)
+          events.rs      // PerkAssignRequested{unit, perk_id}
+          systems.rs     // rules 검증→ PerkAssignedApplied(※ domain.perks.events)
+          view.rs        // 유닛 초상 1~6 + 슬롯/제안 카드 UI + 미리보기
+        firing_pattern/
+          plugin.rs; coordinator.rs; events.rs; systems.rs; view.rs
+        projectile_effects/
+          plugin.rs; coordinator.rs; events.rs; systems.rs; view.rs
+        propagation_slot/
+          plugin.rs; coordinator.rs; events.rs; systems.rs; view.rs
+        elemental_effects/
+          plugin.rs; coordinator.rs; events.rs; systems.rs; view.rs
+        elemental_synergy/
+          plugin.rs; systems.rs; view.rs  // SynergyTriggeredApplied 구독→HUD/VFX
+        wave_runtime/
+          plugin.rs; coordinator.rs; systems.rs; view.rs
+        spawner_horde/
+          plugin.rs; systems.rs; view.rs  // 풀링·스폰 배치(성능)
+        ai_update/
+          plugin.rs; systems.rs           // 대군 이동/공격 tick-slice
+        overlays/
+          plugin.rs; view.rs              // 사거리/경로/전파 미리보기(경량, ViewSync)
+        loot_supply/
+          plugin.rs; systems.rs; view.rs
+        boss_modifiers/
+          plugin.rs; systems.rs; view.rs
 
-goal: robust mouse/keyboard input that resolves to a GridPos.
+    management/          // (선택) 전투 외 관리 화면
+      plugin.rs
+      features/
+        loadout/
+          plugin.rs; systems.rs; view.rs
+        perk_planning/
+          plugin.rs; coordinator.rs; systems.rs; view.rs
 
-ship: CursorWorldPos, HoveredTile(GridPos), hotkeys (1=move, 2=attack).
 
-types/events: TileHovered(GridPos), TileClicked(GridPos).
+ 
+ 
+ 
+Phase 파이프라인 고정
 
-why: every system (selection, UI, overlays) depends on this.
+Input → Intent → Apply → Publish → ViewSync
 
-selection context (player-side only)
+시스템은 반드시 한 Phase에만 등록해 순서/1프레임 이슈 차단.
 
-goal: single source of truth for “what’s selected” and “current intent”.
 
-ship: SelectionCtx { selected_tile, selected_unit, intent: Idle|Move|Attack }.
+이벤트 3단 규약
 
-types/events: SelectionChanged, IntentChanged.
+XxxRequested → XxxApplied → XxxUiSynced
 
-why: prevents spaghetti between UI and gameplay.
+나머지 상태 알림은 가능하면 Changed<T>로 처리.
 
-grid index (spatial cache) + occupancy rules
 
-goal: fast queries on big maps; enforce “one unit per tile”.
+뷰 쪽 “작은 코디네이터”
 
-ship: GridIndex { unit_at[x,y], block_mask, move_cost }.
+view/features/<feature>/coordinator.rs 하나 두고
+여러 입력을 한 점에서 우선순위/상호배타 처리(팬아웃/레이스 방지).
 
-types/events: UnitSpawned, UnitDespawned, TileBlockedChanged, TileCostChanged, TileMoved.
+코어(게임플레이)는 그대로 둠 = SSOT 유지.
 
-why: movement, pathfinding, and AI need O(1) lookups.
+이렇게만 해도 “이벤트가 많아져서 추적 어렵다”는 문제가 대부분 줄어듭니다.
 
-pathfinding service (movement costs + reachability)
 
-goal: reusable A*/Dijkstra service decoupled from UI.
 
-ship: Pathfinder resource; API: shortest_path(start, goal), reachable(start, mp).
 
-types/events: PathRequest/PathResponse.
 
-why: unlocks movement preview, range overlays, AI.
 
-overlays: hover, move range, attack range, path preview
 
-goal: instant player feedback with zero game-state mutation.
+바로 써먹는 요청 문장들
 
-ship: overlay renderer that consumes SelectionCtx + Pathfinder outputs.
+초기 세팅(Phase + 폴더 스캐폴드)
 
-types/events: OverlayRequest (range/path), internal batched mesh for performance.
+“하이브리드로 초기 세팅해줘: Phase 파이프라인( Input→Intent→Apply→Publish→ViewSync ) 넣고, domain/, modes/battle/features/, infra/, app/ 스캐폴드/코드 골격 생성해줘. 기존 로직 변경 없이 구조만 정리해.”
 
-why: lets you playtest interactivity before real actions exist.
+이벤트 3단 규약 도입
 
-turn/state machine (game + player substates)
+“이벤트 3단 규약 적용 패치 만들어줘: 현재 이벤트를 *Requested → *Applied → *UiSynced로 리팩터하고, 시스템을 Phase에 매핑하는 PR용 diff로 보여줘.”
 
-goal: deterministic flow: GameState(InGame) → TurnState(Player|Enemy) → PlayerSubState(Idle|UnitSelected|Move|Attack...).
+뷰 코디네이터(교통정리 시스템) 추가
 
-ship: states, transitions, guards (e.g., no action when animations running).
+“기능 코디네이터 넣어줘: modes/battle/features/~~/coordinator.rs에서 여러 입력을 하나의 ~~Requested로 정규화하도록 만들어줘. 중복/우선순위/검증까지 포함.”
 
-types/events: TurnBegan(Team), TurnEnded(Team).
+기존 기능을 슬라이스로 “승격”
 
-why: everything gets simpler when transitions are formalized.
+“~~ 기능을 feature-slice로 승격해줘: modes/battle/features/~~ 폴더 만들고 plugin.rs, coordinator.rs, events.rs, systems.rs, view.rs 골격과 Phase 배치까지 셋업해줘. 코어 변경은 최소화.”
 
-unit domain: components + spawn/despawn + action points
+새로운 전투 규칙(도메인 코어) 추가
 
-goal: minimal unit model to move and act.
+“도메인 코어에 규칙 추가해줘: domain/combat/projectile/onhit.rs에 Gravity {radius, force} 효과와 처리 순서 통합해줘. pipeline.rs에도 반영하고 단위 테스트 템플릿도 같이.”
 
-ship: Unit, Team, ActionPoints, BaseStats; spawn helpers; serialization seeds.
+퍼크/슬롯 시스템 연결
 
-types/events: UnitCreated, UnitKilled, APChanged.
+“퍼크 슬롯 기능 붙여줘: domain/perks에 슬롯/배타 규칙 정의하고, modes/management/features/perk_selection에서 UI·교체 흐름을 PropagationChosenRequested/Applied로 연결해줘.”
 
-why: you can now “play” a skeleton of the game loop.
+시너지 연출만 추가 (규칙은 유지)
 
-command system (the one place that mutates gameplay)
+“시너지 HUD/VFX 추가해줘: combat에서 발생하는 SynergyTriggeredApplied를 구독하는 modes/battle/features/elemental_synergy 만들고, 아이콘/텍스트/이펙트 ViewSync에 묶어줘.”
 
-goal: unify all game mutations behind commands for undo/logging/replay.
+성능·게이팅
 
-ship: Command enum (Move, Attack, Wait, EndTurn), CommandQueue, CommandResult.
+“기능 토글/게이팅 넣어줘: FeatureFlags 리소스로 ~~ 기능 on/off 가능하게 하고, 모든 시스템에 run_if(Mode/Flag) 달아줘.”
 
-types/events: CommandRequested, CommandCommitted, CommandFailed.
+내 요청에 같이 적으면 좋은 정보(선택)
 
-why: isolates rules from input/UI; enables replays & AI scripting.
+“Bevy 버전: 0.x”
 
-movement execution + animation bridge
+“현재 폴더 트리(간단히)”
 
-goal: authoritative movement with interpolation+blocking.
+“대상 기능 이름 / 동작 목표 / 성공 기준(예: UI에서 버튼 클릭 → ~~Requested 발행)”
 
-ship: MovementSystem (validates via GridIndex, reserves/commits tiles), MoveAnimation (non-blocking but state-aware).
+예시로 한 줄:
 
-types/events: MovementStarted, MovementFinished.
+“하이브리드로 초기 세팅 + ‘propagation_slot’ 슬라이스 추가해줘. 관리 화면에서 관통/도탄/연쇄 중 1개 선택 → PropagationChosenRequested/Applied 흐름까지 Phase에 맞춰 구현.”
 
-why: lets you test end-to-end: click → path → move → AP decrement.
+이런 식으로만 말해주면, 내가 바로 해당 구조/코드 골격까지 깔끔하게 만들어줄게.
 
-combat core (hit calc, damage, death)
 
-goal: deterministic, seedable combat with minimal stats.
 
-ship: AttackResolver (range check, LOS if needed, crit, armor later), DamageSystem, DeathSystem.
 
-types/events: AttackRequested, AttackResolved, DamageApplied, UnitDied.
 
-why: you now have a playable loop: move/attack/end turn.
+Phase 배치(권장)
 
-enemy AI (phase-based; uses same commands)
+Input: 장치 입력 수집
 
-goal: simple, reliable AI that issues Commands (no UI coupling).
+Intent: squad_roster/perk_choice 코디네이터가 *Requested 발행
 
-ship: behavior pipeline: perceive → choose target → pathfind → command queue.
+Apply: 도메인 규칙 적용(PerkSlots 갱신, attack 파이프라인 계산)
 
-types/events: AIThinkTick, AIPlanCommitted.
+Publish: *Applied 결과 이벤트 방출(SSOT에서만)
 
-why: validates your command layer and pathfinder under load.
-
-effects/status & terrain interactions (extensible buffs/debuffs)
-
-goal: non-permanent modifiers without touching base stats.
-
-ship: StatusEffect components, tick/expiry system, terrain auras (e.g., forest: +evasion; road: -move cost).
-
-types/events: EffectApplied/Expired, TileAuraEntered/Left.
-
-why: adds depth without destabilizing core rules.
-
-FoW / visibility (optional but impactful)
-
-goal: per-team visibility + discovery.
-
-ship: VisibilityMap per team; reveal/hide overlays; AI gated by vision.
-
-types/events: VisibilityChanged.
-
-why: affects targeting, UI, and performance—good to add after basics work.
-
-UI HUD & panels (action bar, unit tooltip, turn banner)
-
-goal: clear, minimal UI bound to SelectionCtx + TurnState.
-
-ship: action buttons (also hotkeys), unit card, combat preview tooltip.
-
-types/events: UIClick(Action), Hotkey(Action).
-
-why: polish + faster iteration; keep UI strictly read-from-state, write-as-commands.
-
-save/load + deterministic replay
-
-goal: reproducible sessions.
-
-ship: snapshot of RNG seed, map, units, command log; replay runner.
-
-why: huge for debugging and balancing.
-
-content/data-driven config
-
-goal: tune without recompiling.
-
-ship: TOML/JSON for units, weapons, tileset; loader → components.
-
-why: accelerates balancing + experimentation.
-
-performance pass
-
-goal: scale to large maps.
-
-ship: sprite/mesh batching by Z/layer, chunked overlays, pooled entities, fixed-timestep for simulations, event coalescing.
-
-why: you mentioned large-scale battles—lock this in before content bloat.
-
-debug & tooling
-
-goal: fast diagnosis.
-
-ship: debug draw for grids/paths/LOS, stat overlay, event inspector, lag spike recorder.
-
-
-
-
-
-
-다음 단계(선택)
-
-SelectionCtx에 reachable/pending_path 필드 추가 후, 별도 previews.rs에서 Pathfinder/Index를 읽어 갱신 → 뷰 오버레이로 즉시 피드백.
-
-clicks.rs에서 실제 유닛/적 선택 로직 추가(그리드 인덱스 참조).
-
-commands 모듈을 만들어 CommandRequested를 검증/커밋하고, 이동/공격/사망/애니메이션 이벤트를 발행.
-
-필요하면 바로 이어서 previews(이동범위/경로 미리보기) 스캐폴딩까지 만들어줄게.
+ViewSync: HUD/오버레이/아이콘 갱신(최종 한 번)
