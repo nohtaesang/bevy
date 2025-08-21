@@ -3,7 +3,7 @@
 // ===============================
 use bevy::prelude::*;
 
-use super::view::{TileViewConfig, spawn_tiles_on_map_initialized};
+use super::view::{spawn_tiles_on_map_initialized, TileViewConfig};
 use crate::app::state::ModeState;
 
 /// Renders tiles when the domain map finishes initializing.

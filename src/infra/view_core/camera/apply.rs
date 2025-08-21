@@ -17,7 +17,7 @@ pub fn camera_apply_intent(
     mut intent: ResMut<CameraIntent>,
     q_win: Query<&Window, With<PrimaryWindow>>,
 ) {
-    let Ok((camera, cam_gt, mut tf, mut proj)) = q_cam.get_single_mut() else {
+    let Ok((camera, cam_gt, mut tf, mut proj)) = q_cam.single_mut() else {
         return;
     };
 

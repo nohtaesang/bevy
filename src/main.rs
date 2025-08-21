@@ -5,6 +5,10 @@ use bevy_game::domain::map::components::Map;
 use bevy_game::domain::map::plugin::MapDomainPlugin;
 use bevy_game::infra::view_core::camera::plugin::CameraPlugin;
 use bevy_game::modes::battle::features::map_view::plugin::MapViewPlugin;
+use bevy_game::modes::battle::features::overlays::hover_tile::plugin::HoverTilePlugin;
+use bevy_game::modes::battle::features::spawner_debug::plugin::SpawnerDebugPlugin;
+use bevy_game::modes::battle::features::selection::plugin::SelectionPlugin;
+use bevy_game::modes::battle::features::overlays::move_range::plugin::MoveRangeOverlayPlugin;
 
 fn main() {
     App::new()
@@ -12,7 +16,13 @@ fn main() {
         .init_state::<ModeState>()
         .insert_state(ModeState::Battle)
         .add_plugins((MapDomainPlugin, CameraPlugin, MapViewPlugin))
+        .add_plugins(HoverTilePlugin)
+        .add_plugins(SelectionPlugin)
+        .add_plugins(MoveRangeOverlayPlugin)
+
+        .add_plugins(SpawnerDebugPlugin)
         .add_systems(Update, log_map_once)
+
         .run();
 }
 

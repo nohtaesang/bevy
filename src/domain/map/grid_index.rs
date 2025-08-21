@@ -45,4 +45,7 @@ impl OccupancyIndex {
             self.slots[idx] = None;
         }
     }
+
+    pub fn occupant(&self, p: GridPos) -> Option<Entity> { 
+        let i = (p.x + p.y * self.size.w) as usize; self.slots[i] }
 }
