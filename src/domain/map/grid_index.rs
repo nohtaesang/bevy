@@ -28,6 +28,10 @@ impl OccupancyIndex {
     pub fn in_bounds(&self, p: GridPos) -> bool {
         p.x < self.size.w && p.y < self.size.h
     }
+    pub fn occupant(&self, p: GridPos) -> Option<Entity> {
+        let i = (p.x + p.y * self.size.w) as usize;
+        self.slots[i]
+    }
     pub fn is_free(&self, p: GridPos) -> bool {
         self.in_bounds(p) && self.slots[self.idx(p)].is_none()
     }
@@ -45,7 +49,14 @@ impl OccupancyIndex {
             self.slots[idx] = None;
         }
     }
-
-    pub fn occupant(&self, p: GridPos) -> Option<Entity> { 
-        let i = (p.x + p.y * self.size.w) as usize; self.slots[i] }
+    pub fn try_move(&mut self, from: GridPos, to: GridPos, e: Entity) -> bool {
+        match (self.idx(from), self.idx(to)) {
+            (fi, ti) if self.slots[fi] == Some(e) && self.slots[ti].is_none() => {
+                self.slots[fi] = None;
+                self.slots[ti] = Some(e);
+                true
+            }
+            _ => false,
+        }
+    }
 }

@@ -6,6 +6,7 @@ use bevy::prelude::*;
 use crate::domain::map::components::{Map, TerrainKind};
 use crate::domain::map::events::MapInitializedApplied;
 
+use crate::infra::view_core::coords::make_grid_geometry;
 use crate::infra::view_core::z_index::ZLayer;
 /// Marker for spawned tile sprites (so we can clear/rebuild)
 #[derive(Component)]
@@ -88,11 +89,8 @@ pub fn spawn_tiles_on_map_initialized(
                 TerrainKind::Wall => Color::srgb(0.10, 0.10, 0.10),
             };
 
-            let center = cfg.origin
-                + Vec2::new(
-                    x as f32 * cfg.cell_size.x + cfg.cell_size.x * 0.5,
-                    y as f32 * cfg.cell_size.y + cfg.cell_size.y * 0.5,
-                );
+            let grid_geom = make_grid_geometry(cfg.origin, cfg.cell_size, UVec2::new(map.size.w, map.size.h));
+            let center = grid_geom.grid_center(crate::domain::map::grid_index::GridPos { x, y });
 
             commands.spawn((
                 Sprite {

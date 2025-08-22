@@ -6,8 +6,8 @@ use super::{
     grid_index::OccupancyIndex,
 };
 use crate::app::{
-    Phase,
     state::{AppState, ModeState},
+    Phase,
 };
 
 /// Internal resource to bridge Apply→Publish

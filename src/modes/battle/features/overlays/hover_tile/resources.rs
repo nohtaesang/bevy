@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::domain::map::grid_index::GridPos;
+use bevy::prelude::*;
 
 /// 지금 프레임 커서가 가리키는 그리드(맵 밖이면 None)
 #[derive(Resource, Default, Debug, Clone, Copy)]
@@ -15,6 +15,9 @@ pub struct HoverHighlightConfig {
 }
 impl Default for HoverHighlightConfig {
     fn default() -> Self {
-        Self { color: Color::srgb(1.0, 1.0, 1.0, ).with_alpha(0.2), size_scale: 1.0 }
+        Self {
+            color: Color::srgb(1.0, 1.0, 1.0).with_alpha(0.2),
+            size_scale: 1.0,
+        }
     }
 }

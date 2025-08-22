@@ -11,9 +11,10 @@ pub struct MapViewPlugin;
 
 impl Plugin for MapViewPlugin {
     fn build(&self, app: &mut App) {
-        app.init_resource::<TileViewConfig>().add_systems(
-            Update,
-            spawn_tiles_on_map_initialized.run_if(in_state(ModeState::Battle)),
-        );
+        app.init_resource::<TileViewConfig>()
+            .add_systems(
+                Update,
+                spawn_tiles_on_map_initialized.run_if(in_state(ModeState::Battle)),
+            );
     }
 }
